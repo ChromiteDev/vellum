@@ -9,6 +9,8 @@ import { generateUsername } from "./utils/random";
 import { uploadProfilePicture } from "./server/s3";
 import { apiKey } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
+import { redis } from "./server/redis";
+import { sendMail, isMailConfigured } from "./server/mail";
 
 if (!privateEnv.GOOGLE_CLIENT_ID) throw new Error('GOOGLE_CLIENT_ID is not set');
 if (!privateEnv.GOOGLE_CLIENT_SECRET) throw new Error('GOOGLE_CLIENT_SECRET is not set');
@@ -32,6 +34,13 @@ async function ensureUniqueUsername(candidate: string): Promise<string> {
 		if (taken.length === 0) return next;
 	}
 	return `${generateUsername()}${Math.floor(Math.random() * 900000) + 100000}`;
+}
+
+const MAX_FAILED_LOGINS = 10;
+const LOCKOUT_SECONDS = 60 * 15;
+
+async function failedLoginKey(email: string): Promise<string> {
+	return `login_fail:${email.trim().toLowerCase()}`;
 }
 
 export const auth = betterAuth({
@@ -71,6 +80,75 @@ export const auth = betterAuth({
         minPasswordLength: 8,
         maxPasswordLength: 128,
         requireEmailVerification: false,
+        resetPasswordTokenExpiresIn: 60 * 30,
+        revokeSessionsOnPasswordReset: true,
+        sendResetPassword: async ({ user, url }) => {
+            const sent = await sendMail({
+                to: user.email,
+                subject: 'Reset your Vellum password',
+                text: `Someone requested a password reset for your Vellum account. Reset it here: ${url}\n\nThis link expires in 30 minutes. If you didn't request this, you can ignore this email.`,
+                html: `
+                    <div style="font-family: system-ui, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+                        <h2 style="margin: 0 0 12px;">Reset your Vellum password</h2>
+                        <p style="color: #555;">Someone requested a password reset for your account. Click below to choose a new password.</p>
+                        <p style="margin: 24px 0;"><a href="${url}" style="background: #7c3aed; color: #fff; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: 600;">Reset password</a></p>
+                        <p style="color: #888; font-size: 12px;">This link expires in 30 minutes. If you didn't request this, you can safely ignore this email.</p>
+                    </div>
+                `
+            });
+            if (!sent && !isMailConfigured()) {
+                console.warn('[Vellum] SMTP not configured. Password reset link:', url);
+            }
+        },
+    },
+    rateLimit: {
+        enabled: true,
+        window: 60,
+        max: 300,
+        storage: "memory",
+        customRules: {
+            "/sign-in/email": { window: 60, max: 5 },
+            "/sign-up/email": { window: 60, max: 5 },
+            "/request-password-reset": { window: 60, max: 3 },
+        },
+    },
+    hooks: {
+        before: async (ctx) => {
+            const c = ctx as unknown as { path: string; body?: { email?: string } };
+            if (c.path !== '/sign-in/email') return;
+            const email = c.body?.email;
+            if (!email) return;
+            const key = await failedLoginKey(email);
+            const fails = Number(await redis.get(key) || 0);
+            if (fails >= MAX_FAILED_LOGINS) {
+                return new Response(
+                    JSON.stringify({
+                        code: 'ACCOUNT_LOCKED',
+                        message: 'Too many failed sign-in attempts. Try again in a few minutes.'
+                    }),
+                    { status: 429, headers: { 'Content-Type': 'application/json' } }
+                );
+            }
+        },
+        after: async (ctx) => {
+            const c = ctx as unknown as {
+                path: string;
+                body?: { email?: string };
+                context?: { returned?: unknown };
+            };
+            if (c.path !== '/sign-in/email') return {};
+            const email = c.body?.email;
+            if (!email) return {};
+            const key = await failedLoginKey(email);
+            const returned = c.context?.returned as { statusCode?: number } | undefined;
+            if (returned && typeof returned === 'object' && returned.statusCode && returned.statusCode >= 400) {
+                const fails = await redis.incr(key);
+                if (fails === 1) await redis.expire(key, LOCKOUT_SECONDS);
+            } else {
+                await redis.del(key);
+            }
+            return {};
+        },
     },
     databaseHooks: {
         user: {
@@ -151,6 +229,9 @@ export const auth = betterAuth({
     advanced: {
         database: {
             generateId: false,
-        }
+        },
+        ipAddress: {
+            ipAddressHeaders: ["x-forwarded-for", "x-real-ip", "cf-connecting-ip"],
+        },
     }
 });

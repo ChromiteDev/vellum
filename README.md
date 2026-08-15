@@ -83,6 +83,17 @@ Before you begin, make sure you have the following installed:
 
    Email/password sign-in works out of the box with no extra setup.
 
+   **Password reset** sends a reset link via SMTP. Configure these in `.env` (any SMTP provider works — Resend, Zoho, a Gmail app password, etc.):
+
+   ```ini
+   SMTP_HOST=smtp.resend.com
+   SMTP_PORT=587
+   SMTP_SECURE=false
+   SMTP_USER=resend
+   SMTP_PASS=your_smtp_password
+   EMAIL_FROM=no-reply@vellum.chromitedev.xyz
+   ```
+
 5. **Configure Environment Variables**
 
    ```bash

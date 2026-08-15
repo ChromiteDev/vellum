@@ -9,7 +9,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { signIn, signUp } from '$lib/auth-client';
+	import { client, signIn, signUp } from '$lib/auth-client';
 	import { page } from '$app/state';
 	import { invalidateAll } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
@@ -18,7 +18,7 @@
 		open?: boolean;
 	}>();
 
-	let mode = $state<'signin' | 'signup'>('signin');
+	let mode = $state<'signin' | 'signup' | 'forgot'>('signin');
 	let name = $state('');
 	let email = $state('');
 	let password = $state('');
@@ -36,10 +36,38 @@
 		error = '';
 	}
 
-	function switchMode(next: 'signin' | 'signup') {
+	function switchMode(next: 'signin' | 'signup' | 'forgot') {
 		if (loading) return;
 		mode = next;
 		error = '';
+	}
+
+	async function onForgotSubmit() {
+		if (loading) return;
+		error = '';
+		if (!email.trim()) {
+			error = 'Enter the email on your account.';
+			return;
+		}
+		loading = true;
+		try {
+			const res = await client.requestPasswordReset({
+				email: email.trim(),
+				redirectTo: '/reset-password'
+			});
+			if (res.error) {
+				error = friendlyMessage(res.error.message);
+				return;
+			}
+			error = '';
+			mode = 'signin';
+			email = '';
+			toast.success('If that email exists, a reset link is on its way.');
+		} catch {
+			error = 'Something went wrong. Please try again.';
+		} finally {
+			loading = false;
+		}
 	}
 
 	function friendlyMessage(message?: string): string {
@@ -128,33 +156,37 @@
 			<DialogDescription>
 				{mode === 'signin'
 					? 'Sign in to your account and get back to trading.'
-					: 'Create a free account and start building your portfolio.'}
+					: mode === 'signup'
+						? 'Create a free account and start building your portfolio.'
+						: 'Enter your email and we will send you a link to reset your password.'}
 			</DialogDescription>
 		</DialogHeader>
 
 		<div class="flex flex-col gap-5 py-2">
-			<div class="bg-muted/50 grid grid-cols-2 gap-1 rounded-lg p-1">
-				<button
-					type="button"
-					onclick={() => switchMode('signin')}
-					class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {mode === 'signin'
-						? 'bg-background text-foreground shadow-xs'
-						: 'text-muted-foreground hover:text-foreground'}"
-				>
-					Sign in
-				</button>
-				<button
-					type="button"
-					onclick={() => switchMode('signup')}
-					class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {mode === 'signup'
-						? 'bg-background text-foreground shadow-xs'
-						: 'text-muted-foreground hover:text-foreground'}"
-				>
-					Create account
-				</button>
-			</div>
+			{#if mode !== 'forgot'}
+				<div class="bg-muted/50 grid grid-cols-2 gap-1 rounded-lg p-1">
+					<button
+						type="button"
+						onclick={() => switchMode('signin')}
+						class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {mode === 'signin'
+							? 'bg-background text-foreground shadow-xs'
+							: 'text-muted-foreground hover:text-foreground'}"
+					>
+						Sign in
+					</button>
+					<button
+						type="button"
+						onclick={() => switchMode('signup')}
+						class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {mode === 'signup'
+							? 'bg-background text-foreground shadow-xs'
+							: 'text-muted-foreground hover:text-foreground'}"
+					>
+						Create account
+					</button>
+				</div>
+			{/if}
 
-			<form class="flex flex-col gap-3" onsubmit={(e) => { e.preventDefault(); onSubmit(); }}>
+			<form class="flex flex-col gap-3" onsubmit={(e) => { e.preventDefault(); mode === 'forgot' ? onForgotSubmit() : onSubmit(); }}>
 				{#if mode === 'signup'}
 					<div class="space-y-1.5">
 						<Label for="auth-name">Display name</Label>
@@ -179,16 +211,28 @@
 					/>
 				</div>
 
-				<div class="space-y-1.5">
-					<Label for="auth-password">Password</Label>
-					<Input
-						id="auth-password"
-						type="password"
-						bind:value={password}
-						placeholder={mode === 'signup' ? 'At least 8 characters' : 'Your password'}
-						autocomplete={mode === 'signup' ? 'new-password' : 'current-password'}
-					/>
-				</div>
+				{#if mode !== 'forgot'}
+					<div class="space-y-1.5">
+						<Label for="auth-password">Password</Label>
+						<Input
+							id="auth-password"
+							type="password"
+							bind:value={password}
+							placeholder={mode === 'signup' ? 'At least 8 characters' : 'Your password'}
+							autocomplete={mode === 'signup' ? 'new-password' : 'current-password'}
+						/>
+					</div>
+				{/if}
+
+				{#if mode === 'signin'}
+					<button
+						type="button"
+						onclick={() => switchMode('forgot')}
+						class="text-primary -mt-1 self-start text-xs font-medium hover:underline"
+					>
+						Forgot password?
+					</button>
+				{/if}
 
 				{#if mode === 'signup'}
 					<div class="space-y-1.5">
@@ -208,28 +252,46 @@
 				{/if}
 
 				<Button type="submit" class="w-full" disabled={loading}>
-					{loading ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Create account'}
+					{loading
+						? 'Please wait…'
+						: mode === 'signin'
+							? 'Sign in'
+							: mode === 'signup'
+								? 'Create account'
+								: 'Send reset link'}
 				</Button>
+
+				{#if mode === 'forgot'}
+					<button
+						type="button"
+						onclick={() => switchMode('signin')}
+						class="text-muted-foreground hover:text-foreground self-center text-xs font-medium transition-colors"
+					>
+						Back to sign in
+					</button>
+				{/if}
 			</form>
 
-			<div class="flex items-center gap-3">
-				<span class="bg-border h-px flex-1"></span>
-				<span class="text-muted-foreground text-xs">or continue with</span>
-				<span class="bg-border h-px flex-1"></span>
-			</div>
+			{#if mode !== 'forgot'}
+				<div class="flex items-center gap-3">
+					<span class="bg-border h-px flex-1"></span>
+					<span class="text-muted-foreground text-xs">or continue with</span>
+					<span class="bg-border h-px flex-1"></span>
+				</div>
 
-			<Button
-				class="flex w-full items-center justify-center gap-2"
-				variant="outline"
-				onclick={onGoogle}
-			>
-				<img
-					class="h-5 w-5"
-					src="https://lh3.googleusercontent.com/COxitqgJr1sJnIDe8-jiKhxDx1FrYbtRHKJ9z_hELisAlapwE9LUPh6fcXIfb5vwpbMl4xl9H9TRFPc5NOO8Sb3VSgIBrfRYvW6cUA"
-					alt="Google"
-				/>
-				<span>Continue with Google</span>
-			</Button>
+				<Button
+					class="flex w-full items-center justify-center gap-2"
+					variant="outline"
+					onclick={onGoogle}
+				>
+					<img
+						class="h-5 w-5"
+						src="https://lh3.googleusercontent.com/COxitqgJr1sJnIDe8-jiKhxDx1FrYbtRHKJ9z_hELisAlapwE9LUPh6fcXIfb5vwpbMl4xl9H9TRFPc5NOO8Sb3VSgIBrfRYvW6cUA"
+						alt="Google"
+					/>
+					<span>Continue with Google</span>
+				</Button>
+			{/if}
 
 			<p class="text-muted-foreground text-center text-xs">
 				By continuing, you agree to our

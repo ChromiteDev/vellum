@@ -110,6 +110,7 @@
 			'/legal/terms': 'Terms of Service',
 			'/shop': 'Shop',
 			'/roadmap': 'Roadmap',
+			'/reset-password': 'Reset Password',
 		};
 
 		// Handle dynamic routes
