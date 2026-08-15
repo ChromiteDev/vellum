@@ -294,10 +294,10 @@
 						>
 							{#if revealedTiles.includes(index)}
 								{#if minePositions.includes(index)}
-									<img src="/facedev/avif/bussin.avif" alt="Mine" class="h-8 w-8 object-contain" />
+									<img src="/games/mine.svg" alt="Mine" class="h-8 w-8 object-contain" />
 								{:else}
 									<img
-										src="/facedev/avif/twoblade.avif"
+										src="/games/gem.svg"
 										alt="Safe"
 										class="h-8 w-8 object-contain"
 									/>

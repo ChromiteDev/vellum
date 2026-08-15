@@ -7,16 +7,16 @@ import type { RequestHandler } from './$types';
 import { RANKED_STAKE, SEASON_LENGTH_MS, getSeasonName } from '$lib/data/seasons';
 import { ensureSeasonExists, getActiveSeason } from '$lib/server/seasons';
 
-async function requireAdmin(request: Request) {
+async function requireFounder(request: Request) {
 	const session = await auth.api.getSession({ headers: request.headers });
-	if (!session?.user) throw error(403, 'Admin access required');
+	if (!session?.user) throw error(403, 'Founder access required');
 
 	const [currentUser] = await db
-		.select({ isAdmin: user.isAdmin })
+		.select({ isFounder: user.isFounder })
 		.from(user)
 		.where(eq(user.id, Number(session.user.id)))
 		.limit(1);
-	if (!currentUser?.isAdmin) throw error(403, 'Admin access required');
+	if (!currentUser?.isFounder) throw error(403, 'Founder access required');
 }
 
 function serializeSeason(value: typeof season.$inferSelect) {
@@ -44,7 +44,7 @@ function normalizeBackgroundImage(value: unknown): string | null {
 }
 
 export const GET: RequestHandler = async ({ request }) => {
-	await requireAdmin(request);
+	await requireFounder(request);
 	await ensureSeasonExists();
 
 	const current = await getActiveSeason();
@@ -60,7 +60,7 @@ export const GET: RequestHandler = async ({ request }) => {
 };
 
 export const POST: RequestHandler = async ({ request }) => {
-	await requireAdmin(request);
+	await requireFounder(request);
 	await ensureSeasonExists();
 
 	const { name, backgroundImage } = await request.json();

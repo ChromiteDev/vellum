@@ -1,0 +1,12 @@
+vellum.chromitedev.xyz {
+	encode zstd gzip
+
+	@ws path /ws /ws/*
+	handle @ws {
+		reverse_proxy websocket:8080
+	}
+
+	handle {
+		reverse_proxy app:3000
+	}
+}

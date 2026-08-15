@@ -24,7 +24,8 @@
 	} from '@hugeicons/core-free-icons';
 	import * as Pagination from '$lib/components/ui/pagination';
 	import { toast } from 'svelte-sonner';
-	import { MAX_FILE_SIZE } from '$lib/data/constants';
+	import { MAX_FILE_SIZE, MAX_SONG_SIZE } from '$lib/data/constants';
+	import { BANNER_PRESETS, getBannerPreset } from '$lib/data/profile-customization';
 	import { volumeSettings } from '$lib/stores/volume-settings';
 	import { USER_DATA } from '$lib/stores/user-data';
 	import * as Dialog from '$lib/components/ui/dialog';
@@ -64,6 +65,25 @@
 	let isDeleting = $state(false);
 	let isDownloading = $state(false);
 	let disableMentions = $state($USER_DATA?.disableMentions || false);
+
+	// Profile appearance
+	let bannerColor = $state<string | null>($USER_DATA?.bannerColor ?? null);
+	let bannerPreviewUrl = $state<string | null>(null);
+	let bannerInput: HTMLInputElement | undefined = $state(undefined);
+	let songName = $state<string>($USER_DATA?.profileSongName ?? '');
+	let songInput: HTMLInputElement | undefined = $state(undefined);
+	let songPreviewUrl = $state<string | null>(null);
+	let previewAudio: HTMLAudioElement | undefined = undefined;
+	let previewing = $state(false);
+
+	let hasSong = $derived(!!$USER_DATA?.profileSong);
+	let displaySongName = $derived($USER_DATA?.profileSongName ?? 'Profile track');
+
+	let bannerPreviewCss = $derived(
+		bannerPreviewUrl
+			? null
+			: getBannerPreset(bannerColor)?.css ?? 'linear-gradient(120deg, #7c3aed, #4f46e5)'
+	);
 
 	// Blocked users state
 	let blockedUsers = $state<Array<{ id: number; blockedId: number; username: string; name: string; image: string | null; createdAt: string }>>([]);
@@ -232,6 +252,119 @@
 		debouncedSaveVolume(settings);
 	}
 
+	async function saveAppearance(fields: {
+		bannerColor?: string | null;
+		banner?: File;
+		song?: File;
+		songName?: string | null;
+		songRemove?: boolean;
+	}) {
+		const fd = new FormData();
+		if (fields.bannerColor !== undefined) fd.append('bannerColor', fields.bannerColor ?? '');
+		if (fields.banner) fd.append('banner', fields.banner);
+		if (fields.song) fd.append('song', fields.song);
+		if (fields.songName !== undefined) fd.append('songName', fields.songName ?? '');
+		if (fields.songRemove) fd.append('songRemove', '1');
+		try {
+			const res = await fetch('/api/settings/appearance', { method: 'POST', body: fd });
+			if (!res.ok) {
+				const data = await res.json().catch(() => ({}));
+				toast.error(data.message || 'Failed to save appearance');
+				return false;
+			}
+			await invalidateAll();
+			haptic.trigger('success');
+			return true;
+		} catch {
+			toast.error('Failed to save appearance');
+			return false;
+		}
+	}
+
+	function pickBannerPreset(key: string) {
+		bannerColor = key;
+		bannerPreviewUrl = null;
+		saveAppearance({ bannerColor: key });
+	}
+
+	function removeBanner() {
+		bannerColor = null;
+		bannerPreviewUrl = null;
+		saveAppearance({ bannerColor: '' });
+	}
+
+	function handleBannerFile(e: Event) {
+		const f = (e.target as HTMLInputElement).files?.[0];
+		if (!f) return;
+		if (f.size > MAX_FILE_SIZE) {
+			toast.error('Banner must be smaller than 1MB');
+			(e.target as HTMLInputElement).value = '';
+			return;
+		}
+		if (!f.type.startsWith('image/')) {
+			toast.error('Please select a valid image file');
+			(e.target as HTMLInputElement).value = '';
+			return;
+		}
+		bannerPreviewUrl = URL.createObjectURL(f);
+		bannerColor = null;
+		saveAppearance({ banner: f });
+	}
+
+	function togglePreview() {
+		const src = songPreviewUrl || getPublicUrl($USER_DATA?.profileSong ?? null);
+		if (!src) return;
+		if (previewing) {
+			previewAudio?.pause();
+			previewing = false;
+			return;
+		}
+		if (!previewAudio) previewAudio = new Audio();
+		previewAudio.src = src;
+		previewAudio.loop = true;
+		previewAudio.volume = 0.5;
+		previewAudio.play().catch(() => {});
+		previewing = true;
+	}
+
+	function handleSongFile(e: Event) {
+		const f = (e.target as HTMLInputElement).files?.[0];
+		if (!f) return;
+		if (f.size > MAX_SONG_SIZE) {
+			toast.error('Song must be smaller than 20MB');
+			(e.target as HTMLInputElement).value = '';
+			return;
+		}
+		if (!f.type.startsWith('audio/')) {
+			toast.error('Please select a valid audio file (MP3, WAV, OGG, M4A, AAC, FLAC, or WebM)');
+			(e.target as HTMLInputElement).value = '';
+			return;
+		}
+		const fallbackName = f.name.replace(/\.[^.]+$/, '').slice(0, 80);
+		const nameToUse = songName.trim() || fallbackName;
+		songPreviewUrl = URL.createObjectURL(f);
+		previewAudio?.pause();
+		previewing = false;
+		saveAppearance({ song: f, songName: nameToUse });
+	}
+
+	async function saveSongName() {
+		const name = songName.trim().slice(0, 80);
+		if (!name) {
+			toast.error('Enter a song title');
+			return;
+		}
+		await saveAppearance({ songName: name });
+	}
+
+	function clearSong() {
+		previewAudio?.pause();
+		previewing = false;
+		songPreviewUrl = null;
+		songName = '';
+		saveAppearance({ songRemove: true });
+	}
+
 	async function toggleDisableMentions() {
 		disableMentions = !disableMentions;
 		haptic.trigger('light');
@@ -364,8 +497,8 @@
 </script>
 
 <SEO
-	title="Settings - Rugplay"
-	description="Manage your Rugplay account settings, profile information, audio preferences, and privacy options."
+	title="Settings - Vellum"
+	description="Manage your Vellum account settings, profile information, audio preferences, and privacy options."
 	keywords="game account settings, profile settings game, privacy settings, audio settings game"
 />
 
@@ -474,6 +607,122 @@
 						{loading ? 'Saving…' : 'Save Changes'}
 					</Button>
 				</form>
+			</Card.Content>
+		</Card.Root>
+
+		<Card.Root>
+			<Card.Header>
+				<Card.Title>Profile Appearance</Card.Title>
+				<Card.Description>Set your profile banner and soundtrack</Card.Description>
+			</Card.Header>
+			<Card.Content class="space-y-6">
+				<div class="space-y-3">
+					<Label>Banner</Label>
+					<div
+						class="relative h-28 overflow-hidden rounded-xl"
+						style="background: {bannerPreviewCss};"
+					>
+						{#if bannerPreviewUrl}
+							<img
+								src={bannerPreviewUrl}
+								alt="Banner preview"
+								class="h-full w-full object-cover"
+							/>
+						{:else if $USER_DATA?.bannerImage && !bannerPreviewUrl && !bannerColor}
+							<img
+								src={getPublicUrl($USER_DATA.bannerImage)}
+								alt="Banner"
+								class="h-full w-full object-cover"
+							/>
+						{/if}
+						<button
+							type="button"
+							class="absolute inset-0 flex items-center justify-center bg-black/0 text-white opacity-0 transition-opacity hover:bg-black/40 hover:opacity-100"
+							onclick={() => bannerInput?.click()}
+						>
+							<span class="rounded-md bg-black/60 px-3 py-1 text-xs font-medium">Upload image</span>
+						</button>
+					</div>
+					<input
+						type="file"
+						accept="image/*"
+						class="hidden"
+						bind:this={bannerInput}
+						onchange={handleBannerFile}
+					/>
+					<div class="flex flex-wrap items-center gap-2">
+						{#each BANNER_PRESETS as preset (preset.key)}
+							<button
+								type="button"
+								title={preset.label}
+								aria-label={`Banner: ${preset.label}`}
+								onclick={() => pickBannerPreset(preset.key)}
+								class="h-8 w-8 rounded-lg ring-offset-2 transition-transform hover:scale-110 {bannerColor ===
+								preset.key
+									? 'ring-2 ring-primary'
+									: ''}"
+								style="background: {preset.css};"
+							></button>
+						{/each}
+						<Button variant="outline" size="sm" onclick={() => bannerInput?.click()}>
+							Upload
+						</Button>
+						<Button variant="ghost" size="sm" onclick={removeBanner}>
+							Remove
+						</Button>
+					</div>
+				</div>
+
+				<div class="space-y-3">
+					<Label>Profile Music</Label>
+					<p class="text-muted-foreground text-xs">
+						Upload any song (MP3, WAV, OGG, M4A, AAC, FLAC, or WebM, up to 20MB). Visitors
+						can play it on your profile.
+					</p>
+
+					{#if hasSong}
+						<div class="flex items-center justify-between gap-3 rounded-lg border p-3">
+							<div class="min-w-0">
+								<div class="truncate font-medium">{displaySongName}</div>
+								<div class="text-muted-foreground text-xs">Live on your profile</div>
+							</div>
+							<div class="flex shrink-0 gap-2">
+								<Button variant="ghost" size="sm" onclick={togglePreview}>
+									{previewing ? 'Stop' : 'Preview'}
+								</Button>
+								<Button variant="outline" size="sm" onclick={clearSong}>Remove</Button>
+							</div>
+						</div>
+					{:else}
+						<div class="text-muted-foreground text-xs">No song on your profile yet.</div>
+					{/if}
+
+					<div class="flex flex-wrap items-end gap-2">
+						<div class="min-w-0 flex-1 space-y-1">
+							<Label for="song-name" class="text-xs">Song title</Label>
+							<Input
+								id="song-name"
+								bind:value={songName}
+								placeholder="My track"
+								maxlength={80}
+								class="h-9"
+							/>
+						</div>
+						<Button variant="outline" size="sm" onclick={() => songInput?.click()}>
+							{hasSong ? 'Replace' : 'Upload song'}
+						</Button>
+					</div>
+					{#if hasSong && songName.trim() && songName.trim() !== displaySongName}
+						<Button variant="ghost" size="sm" onclick={saveSongName}>Save title</Button>
+					{/if}
+					<input
+						type="file"
+						accept="audio/*"
+						class="hidden"
+						bind:this={songInput}
+						onchange={handleSongFile}
+					/>
+				</div>
 			</Card.Content>
 		</Card.Root>
 

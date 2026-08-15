@@ -357,14 +357,14 @@
 						<div class="coin" style="transform: rotateY({coinRotation}deg)">
 							<div class="coin-face coin-heads">
 								<img
-									src="/facedev/avif/bliptext.avif"
+									src="/games/coin-heads.svg"
 									alt="Heads"
 									class="h-32 w-32 object-contain"
 								/>
 							</div>
 							<div class="coin-face coin-tails">
 								<img
-									src="/facedev/avif/wattesigma.avif"
+									src="/games/coin-tails.svg"
 									alt="Tails"
 									class="h-32 w-32 object-contain"
 								/>
@@ -407,7 +407,7 @@
 						>
 							<div class="text-center">
 								<img
-									src="/facedev/avif/bliptext.avif"
+									src="/games/coin-heads.svg"
 									alt="Heads"
 									class="mx-auto mb-1 h-8 w-8 object-contain"
 								/>
@@ -422,7 +422,7 @@
 						>
 							<div class="text-center">
 								<img
-									src="/facedev/avif/wattesigma.avif"
+									src="/games/coin-tails.svg"
 									alt="Tails"
 									class="mx-auto mb-1 h-8 w-8 object-contain"
 								/>

@@ -136,9 +136,9 @@
 </script>
 
 <SEO
-	title="Achievements - Rugplay"
-	description="Track your progress and unlock achievements in the Rugplay crypto trading simulator. Complete challenges to earn rewards."
-	keywords="crypto game achievements, trading simulator challenges, virtual trading rewards"
+	title="Achievements - Vellum"
+	description="Track your progress and unlock 100 achievements on Vellum. Complete challenges to earn rewards."
+	keywords="crypto achievements, trading challenges, vellum rewards"
 />
 
 <div class="container mx-auto max-w-7xl p-4 md:p-6">

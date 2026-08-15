@@ -81,7 +81,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 	{ id: 'create_5', name: 'Serial Minter', description: 'Create 5 coins', icon: 'blue_crystal.png', difficulty: 'medium', cashReward: 5000, gemReward: 25, category: 'creation', targetValue: 5 },
 	{ id: 'create_25', name: 'Coin Factory', description: 'Create 25 coins', icon: 'yellow_crystal.png', difficulty: 'hard', cashReward: 25000, gemReward: 100, category: 'creation', targetValue: 25 },
 	{ id: 'moon_100x', name: 'To The Moon', description: 'Have a coin you created reach $1 (1,000,000x its starting price)', icon: 'rocket.png', difficulty: 'legendary', cashReward: 50000, gemReward: 150, category: 'creation' },
-	{ id: 'rug_pull', name: 'Rug Lord', description: 'Crash a coin\'s price by 50% or more in a single sell', icon: 'sword.png', difficulty: 'hard', cashReward: 10000, gemReward: 50, category: 'creation' },
+	{ id: 'rug_pull', name: 'Dump Lord', description: 'Crash a coin\'s price by 50% or more in a single sell', icon: 'sword.png', difficulty: 'hard', cashReward: 10000, gemReward: 50, category: 'creation' },
 
 	// ARCADE (11)
 	{ id: 'first_arcade', name: 'Feeling Lucky', description: 'Play your first arcade game', icon: 'dice.png', difficulty: 'easy', cashReward: 1000, gemReward: 5, category: 'arcade' },
@@ -119,7 +119,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 	// SOCIAL (7)
 	{ id: 'comments_25', name: 'Socialite', description: 'Post 25 comments on coin pages', icon: 'locationpin.png', difficulty: 'medium', cashReward: 5000, gemReward: 15, category: 'social', targetValue: 25 },
 	{ id: 'comments_50', name: 'Yapper', description: 'Write 50 comments in total', icon: 'chat.png', difficulty: 'medium', cashReward: 7500, gemReward: 15, category: 'social', targetValue: 50 },
-	{ id: 'top_rugpuller', name: 'Top Rugpuller', description: 'Be the #1 rugpuller on the daily leaderboard', icon: 'smiling_face_with_horns.png', difficulty: 'hard', cashReward: 10000, gemReward: 50, category: 'social' },
+	{ id: 'top_rugpuller', name: 'Top Dumper', description: 'Be the #1 dumper on the daily leaderboard', icon: 'smiling_face_with_horns.png', difficulty: 'hard', cashReward: 10000, gemReward: 50, category: 'social' },
 	{ id: 'transfers_10_users', name: 'Generous', description: 'Send transfers to 10 different users', icon: 'creditcard.png', difficulty: 'medium', cashReward: 5000, gemReward: 25, category: 'social', targetValue: 10 },
 	{ id: 'transfer_500k', name: 'Big Tipper', description: 'Transfer $500,000+ total to other users', icon: 'wheat.png', difficulty: 'hard', cashReward: 25000, gemReward: 75, category: 'social', targetValue: 500000 },
 	{ id: 'received_from_15', name: 'A Celebrity?', description: 'Have 15 unique people send you cash', icon: 'ticket.png', difficulty: 'hard', cashReward: 20000, gemReward: 25, category: 'social', targetValue: 15 },
@@ -143,6 +143,39 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 	{ id: 'season_regular', name: 'Regular', description: 'Compete in 3 different seasons', icon: 'season_regular.png', difficulty: 'medium', cashReward: 10000, gemReward: 30, category: 'season', targetValue: 3 },
 	{ id: 'season_veteran', name: 'Old Guard', description: 'Compete in 10 different seasons', icon: 'season_old_guard.png', difficulty: 'legendary', cashReward: 75000, gemReward: 200, category: 'season', targetValue: 10 },
 	{ id: 'season_underdog', name: 'Underdog', description: 'Finish top 10 in a season', icon: 'season_underdog.png', difficulty: 'hard', cashReward: 20000, gemReward: 75, category: 'season', targetValue: 10 },
+
+	// VELLUM EXPANSION (31)
+	{ id: 'day_trades_20', name: 'Market Hustler', description: 'Complete 20 trades in a single day', icon: 'day_trades.svg', difficulty: 'medium', cashReward: 7500, gemReward: 25, category: 'trading', targetValue: 20 },
+	{ id: 'net_profit_100k', name: 'Green Machine', description: 'Accumulate $100,000 in net trading profit', icon: 'net_profit.svg', difficulty: 'hard', cashReward: 20000, gemReward: 60, category: 'trading', targetValue: 100000 },
+	{ id: 'net_profit_1m', name: 'Seven Figures', description: 'Accumulate $1,000,000 in net trading profit', icon: 'net_profit_million.svg', difficulty: 'legendary', cashReward: 75000, gemReward: 200, category: 'trading', targetValue: 1000000 },
+	{ id: 'sell_100k', name: 'Cash Out', description: 'Sell $100,000+ of a single coin in one trade', icon: 'cash_out.svg', difficulty: 'hard', cashReward: 15000, gemReward: 50, category: 'trading' },
+	{ id: 'hold_week', name: 'Patience', description: 'Hold a single coin for 7+ days without selling', icon: 'patience.svg', difficulty: 'medium', cashReward: 7500, gemReward: 25, category: 'trading' },
+	{ id: 'portfolio_10m', name: 'Ten Figures', description: 'Reach $10,000,000 total portfolio value', icon: 'portfolio_10m.svg', difficulty: 'legendary', cashReward: 100000, gemReward: 250, category: 'wealth' },
+	{ id: 'cash_1m', name: 'Liquid Gold', description: 'Hold $1,000,000 in pure cash', icon: 'liquid_gold.svg', difficulty: 'hard', cashReward: 20000, gemReward: 60, category: 'wealth' },
+	{ id: 'mc_100k', name: 'Rising Star', description: 'Have a coin you created reach a $100,000 market cap', icon: 'rising_star.svg', difficulty: 'hard', cashReward: 20000, gemReward: 60, category: 'creation' },
+	{ id: 'mc_1m', name: 'Market Captain', description: 'Have a coin you created reach a $1,000,000 market cap', icon: 'market_captain.svg', difficulty: 'legendary', cashReward: 75000, gemReward: 200, category: 'creation' },
+	{ id: 'create_100', name: 'Coin Empire', description: 'Create 100 coins', icon: 'coin_empire.svg', difficulty: 'legendary', cashReward: 100000, gemReward: 250, category: 'creation', targetValue: 100 },
+	{ id: 'arcade_10', name: 'Arcade Rookie', description: 'Play 10 arcade games', icon: 'arcade_rookie.svg', difficulty: 'easy', cashReward: 1500, gemReward: 8, category: 'arcade', targetValue: 10 },
+	{ id: 'arcade_500', name: 'Arcade Fiend', description: 'Play 500 arcade games', icon: 'arcade_fiend.svg', difficulty: 'hard', cashReward: 20000, gemReward: 60, category: 'arcade', targetValue: 500 },
+	{ id: 'arcade_1000', name: 'Full Tilt', description: 'Play 1,000 arcade games', icon: 'full_tilt.svg', difficulty: 'legendary', cashReward: 75000, gemReward: 200, category: 'arcade', targetValue: 1000 },
+	{ id: 'arcade_10_streak', name: 'Untouchable', description: 'Win 10 arcade games in a row', icon: 'untouchable.svg', difficulty: 'legendary', cashReward: 60000, gemReward: 175, category: 'arcade', targetValue: 10 },
+	{ id: 'arcade_1m_wagered', name: 'Whale Gaming', description: 'Wager $1,000,000 total across arcade games', icon: 'whale_gaming.svg', difficulty: 'legendary', cashReward: 75000, gemReward: 200, category: 'arcade', targetValue: 1000000 },
+	{ id: 'arcade_wins_100k', name: 'House Edge Beater', description: 'Win $100,000 total in the arcade', icon: 'house_edge.svg', difficulty: 'medium', cashReward: 10000, gemReward: 30, category: 'arcade', targetValue: 100000 },
+	{ id: 'streak_60', name: 'Unbreakable', description: 'Reach a 60-day login streak', icon: 'unbreakable.svg', difficulty: 'legendary', cashReward: 50000, gemReward: 150, category: 'streaks', targetValue: 60 },
+	{ id: 'streak_100', name: 'Centurion', description: 'Reach a 100-day login streak', icon: 'centurion.svg', difficulty: 'legendary', cashReward: 100000, gemReward: 250, category: 'streaks', targetValue: 100 },
+	{ id: 'prestige_2', name: 'Reborn', description: 'Reach Prestige II', icon: 'reborn.svg', difficulty: 'medium', cashReward: 10000, gemReward: 30, category: 'prestige', targetValue: 2 },
+	{ id: 'win_100_bets', name: 'Diviner', description: 'Win 100 Hopium bets', icon: 'diviner.svg', difficulty: 'legendary', cashReward: 75000, gemReward: 200, category: 'hopium', targetValue: 100 },
+	{ id: 'bet_100k_win', name: 'High Stakes Oracle', description: 'Win a single Hopium bet worth $100,000+', icon: 'oracle.svg', difficulty: 'legendary', cashReward: 100000, gemReward: 250, category: 'hopium' },
+	{ id: 'create_50_questions', name: 'Inquisitor', description: 'Create 50 Hopium questions', icon: 'inquisitor.svg', difficulty: 'hard', cashReward: 20000, gemReward: 60, category: 'hopium', targetValue: 50 },
+	{ id: 'comments_100', name: 'Chatterbox', description: 'Post 100 comments', icon: 'chatterbox.svg', difficulty: 'medium', cashReward: 7500, gemReward: 25, category: 'social', targetValue: 100 },
+	{ id: 'comments_500', name: 'Megaphone', description: 'Post 500 comments', icon: 'megaphone.svg', difficulty: 'hard', cashReward: 20000, gemReward: 60, category: 'social', targetValue: 500 },
+	{ id: 'transfer_10k_single', name: 'Big Send', description: 'Send $10,000 in a single transfer', icon: 'big_send.svg', difficulty: 'medium', cashReward: 7500, gemReward: 25, category: 'social' },
+	{ id: 'received_500k', name: 'Loved', description: 'Receive $500,000 total in transfers', icon: 'loved.svg', difficulty: 'hard', cashReward: 25000, gemReward: 75, category: 'social', targetValue: 500000 },
+	{ id: 'received_10_users', name: 'Popular', description: 'Receive transfers from 10 unique users', icon: 'popular.svg', difficulty: 'medium', cashReward: 7500, gemReward: 25, category: 'social', targetValue: 10 },
+	{ id: 'own_25_colors', name: 'Colorist', description: 'Own 25 different name colors', icon: 'colorist.svg', difficulty: 'hard', cashReward: 20000, gemReward: 60, category: 'shop', targetValue: 25 },
+	{ id: 'open_10_crates', name: 'Crate Junkie', description: 'Open 10 crates', icon: 'crate_junkie.svg', difficulty: 'easy', cashReward: 2500, gemReward: 10, category: 'shop', targetValue: 10 },
+	{ id: 'account_1yr', name: 'Founding Member', description: 'Have an account older than 1 year', icon: 'founding_member.svg', difficulty: 'legendary', cashReward: 50000, gemReward: 150, category: 'special' },
+	{ id: 'night_owl', name: 'Night Owl', description: 'Make a trade between 2:00 AM and 4:59 AM', icon: 'night_owl.svg', difficulty: 'medium', cashReward: 7500, gemReward: 25, category: 'trading' },
 ];
 
 export const ACHIEVEMENTS_MAP: Record<string, AchievementDef> = Object.fromEntries(

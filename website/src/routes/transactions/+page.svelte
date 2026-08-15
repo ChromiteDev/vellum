@@ -330,10 +330,10 @@
 </script>
 
 <SEO
-	title="Transactions - Rugplay"
-	description="View your complete trading history and transaction records in the Rugplay cryptocurrency simulation game."
+	title="Transactions - Vellum"
+	description="View your complete trading history and transaction records on Vellum."
 	noindex={true}
-	keywords="trading history game, transaction records simulator, crypto trading log, virtual trading history"
+	keywords="trading history, transaction records, crypto trading log"
 />
 
 <div class="container mx-auto max-w-7xl p-6">

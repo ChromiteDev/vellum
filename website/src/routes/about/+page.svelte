@@ -5,12 +5,9 @@
 	import {
 		BookOpen01Icon,
 		GithubIcon,
-		YoutubeIcon,
-		TwitterIcon,
 		UserIcon,
 		Coins01Icon,
-		TradeUpIcon,
-		DiscordIcon
+		TradeUpIcon
 	} from '@hugeicons/core-free-icons';
 	import UserManualModal from '$lib/components/self/UserManualModal.svelte';
 
@@ -23,22 +20,22 @@
 <UserManualModal bind:open={showUserManual} />
 
 <svelte:head>
-	<title>About - Rugplay</title>
+	<title>About - Vellum</title>
 	<meta
 		name="description"
-		content="Learn about Rugplay - a realistic cryptocurrency trading simulation focusing on DeFi risks and mechanics."
+		content="Learn about Vellum - a realistic cryptocurrency market with live liquidity pools, coin launches, and a full arcade."
 	/>
 </svelte:head>
 
 <div class="container mx-auto space-y-8 px-4 py-8">
 	<div class="space-y-4 text-center">
 		<div class="mb-4 flex items-center justify-center gap-2">
-			<img src="/rugplay.svg" class="h-12 w-12" alt="Rugplay" />
-			<h1 class="text-4xl font-bold">Rugplay</h1>
+			<img src="/vellum.svg" class="h-12 w-12" alt="Vellum" />
+			<h1 class="text-4xl font-bold">Vellum</h1>
 		</div>
 		<p class="text-muted-foreground mx-auto max-w-2xl text-lg">
-			A crypto trading simulator where you can practice trading without losing real money. Create
-			coins, trade them, and rug pull!
+			A live crypto market where you trade, launch coins, and climb. Practice real strategy in a
+			risk-free environment.
 		</p>
 		<div class="flex flex-wrap justify-center gap-4">
 			<Button onclick={handleManual} size="lg">
@@ -53,22 +50,22 @@
 			<CardHeader>
 				<CardTitle class="flex items-center gap-2">
 					<HugeiconsIcon icon={Coins01Icon} class="text-primary h-5 w-5" />
-					About Rugplay
+					About Vellum
 				</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<div class="space-y-3">
 					<p class="text-muted-foreground text-sm">
-						Rugplay is a realistic cryptocurrency trading simulation that focuses on DeFi
-						(Decentralized Finance) mechanics and the inherent risks of decentralized trading.
+						Vellum is a realistic cryptocurrency market focused on DeFi (Decentralized Finance)
+						mechanics and the dynamics of decentralized trading.
 					</p>
 					<p class="text-muted-foreground text-sm">
-						Practice trading strategies, create your own coins, and learn about market dynamics
-						without any real financial risk. Experience AMM trading, liquidity pools, and even rug
-						pulls. (duh)
+						Practice trading strategies, create your own coins, and learn market dynamics in a
+						risk-free environment. Experience AMM trading, liquidity pools, and the full market
+						cycle.
 					</p>
 					<p class="text-muted-foreground text-sm">
-						Join the community of degenerates where paranoia is profitable!
+						Join a community where reading the market is the whole game.
 					</p>
 				</div>
 			</CardContent>
@@ -124,47 +121,17 @@
 			</CardHeader>
 			<CardContent>
 				<div class="space-y-4">
-					<p class="text-muted-foreground text-sm">Created by <strong>FaceDev</strong></p>
+					<p class="text-muted-foreground text-sm">Created by the <strong>Vellum</strong> team</p>
 					<div class="flex flex-wrap gap-2">
 						<Button
 							variant="outline"
 							size="sm"
-							href="https://youtube.com/@FaceDevStuff"
-							target="_blank"
-							rel="noopener"
-						>
-							<HugeiconsIcon icon={YoutubeIcon} class="h-4 w-4" />
-							YouTube
-						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							href="https://x.com/facedevstuff"
-							target="_blank"
-							rel="noopener"
-						>
-							<HugeiconsIcon icon={TwitterIcon} class="h-4 w-4" />
-							Twitter
-						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							href="https://github.com/outpoot/rugplay"
+							href="https://github.com/vellum"
 							target="_blank"
 							rel="noopener"
 						>
 							<HugeiconsIcon icon={GithubIcon} class="h-4 w-4" />
 							GitHub
-						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							href="https://discord.gg/facedev"
-							target="_blank"
-							rel="noopener"
-						>
-							<HugeiconsIcon icon={DiscordIcon} class="h-4 w-4" />
-							Discord
 						</Button>
 					</div>
 					<p class="text-muted-foreground text-sm">Achievement icons by <a href="https://twitter.com/gvesster" target="_blank" rel="noopener" class="text-primary underline">gvstr</a></p>

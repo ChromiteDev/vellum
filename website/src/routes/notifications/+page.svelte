@@ -96,8 +96,8 @@
 </script>
 
 <SEO
-	title="Notifications - Rugplay"
-	description="View your notifications and updates from Rugplay."
+	title="Notifications - Vellum"
+	description="View your notifications and updates from Vellum."
 />
 
 <div class="container mx-auto max-w-4xl p-6">

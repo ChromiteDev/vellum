@@ -243,12 +243,6 @@ export async function POST({ params, request }) {
                 throw error(400, `Insufficient coins. You have ${userHolding ? Number(userHolding.quantity) : 0} but trying to sell ${amount}`);
             }
 
-            // Allow more aggressive selling for rug pull simulation - prevent only mathematical breakdown
-            const maxSellable = Math.floor(Number(coinData.poolCoinAmount) * 0.995);
-            if (amount > maxSellable) {
-                throw error(400, `Cannot sell more than 99.5% of pool tokens. Max sellable: ${maxSellable} tokens`);
-            }
-
             const sellResult = await executeSellTrade(tx, coinData, userId, amount);
 
             if (!sellResult.success) {

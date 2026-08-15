@@ -1,10 +1,10 @@
-<img style="width: 128px; height: 128px" src="website/static/favicon.svg" /><h1 style="font-size: 48px"><a href="https://rugplay.com">Rugplay.com</a> - the fake crypto simulator.</h1>
+<img style="width: 128px; height: 128px" src="website/static/favicon.svg" /><h1 style="font-size: 48px"><a href="https://vellum.chromitedev.xyz">Vellum</a> - the risk-free crypto trading simulator.</h1>
 
-[Privacy Policy](https://rugplay.com/legal/privacy) | [Terms of Service](https://rugplay.com/legal/terms) | [License](LICENSE) | [YouTube video](https://www.youtube.com/watch?v=nRUkvPMphRc)
+[Privacy Policy](https://vellum.chromitedev.xyz/legal/privacy) | [Terms of Service](https://vellum.chromitedev.xyz/legal/terms) | [License](LICENSE)
 
 ## About
 
-Rugplay is a realistic cryptocurrency trading simulator that lets you experience the risks and mechanics of decentralized exchanges without real financial consequences. Create coins, trade with liquidity pools, and learn about "rug pulls" in a... relatively safe environment :)
+Vellum is a realistic cryptocurrency trading simulator that lets you experience the risks and mechanics of decentralized exchanges without real financial consequences. Create coins, trade with liquidity pools, and learn about token dumps and market crashes in a... relatively safe environment :)
 
 ## Features
 - 🪙 Create coins
@@ -33,15 +33,15 @@ Before you begin, make sure you have the following installed:
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/outpoot/rugplay.git
-   cd rugplay
+   git clone https://github.com/ChromiteDev/vellum.git
+   cd vellum
    ```
 
 2. **Set up Redis**
 
    Create a Redis Docker container:
    ```bash
-   docker run -d --name rugplay-redis -p 6379:6379 -v rugplay_redisdata:/data --restart unless-stopped redis:8-alpine redis-server --save 60 1
+   docker run -d --name vellum-redis -p 6379:6379 -v vellum_redisdata:/data --restart unless-stopped redis:8-alpine redis-server --save 60 1
    ```
 
    **Alternative:** You can also [download and install Redis directly](https://redis.io/downloads/) for your operating system, or use a managed Redis service such as Redis Cloud.
@@ -52,7 +52,7 @@ Before you begin, make sure you have the following installed:
 
    - **Run Postgres locally with Docker:**
      ```bash
-     docker run -d --name rugplay-postgres -e POSTGRES_USER=pguser -e POSTGRES_PASSWORD=pgpass -e POSTGRES_DB=rugplay -p 5432:5432 -v rugplay_pgdata:/var/lib/postgresql/data --restart unless-stopped pgvector/pgvector:pg16
+     docker run -d --name vellum-postgres -e POSTGRES_USER=pguser -e POSTGRES_PASSWORD=pgpass -e POSTGRES_DB=vellum -p 5432:5432 -v vellum_pgdata:/var/lib/postgresql/data --restart unless-stopped pgvector/pgvector:pg16
      ```
 
    - **Use a managed cloud Postgres provider:**
@@ -62,12 +62,15 @@ Before you begin, make sure you have the following installed:
 
    If you are running Postgres locally, you can seed the database with:
    ```bash
-   docker exec -it rugplay-postgres psql -d rugplay -U pguser
+   docker exec -it vellum-postgres psql -d vellum -U pguser
    ```
    Then, copy and paste the SQL from the migration files (e.g. `website/drizzle/0000_crazy_bloodstrike.sql`).
 
-4. **Configure Google OAuth**
+4. **Configure Authentication (Google + Email/Password)**
 
+   Vellum supports two ways to sign in: **Google** and **email + password** (no Google account needed).
+
+   For Google OAuth:
    - Go to [Google Auth Platform dashboard](https://console.cloud.google.com/auth/clients)
    - Create a new client:
      - Application type: "Web application"
@@ -76,7 +79,9 @@ Before you begin, make sure you have the following installed:
      - Authorized redirect URIs:
        - http://localhost:3002/api/auth/callback/google
        - http://localhost:5173/api/auth/callback/google
-       - Production URL
+       - https://vellum.chromitedev.xyz/api/auth/callback/google
+
+   Email/password sign-in works out of the box with no extra setup.
 
 5. **Configure Environment Variables**
 
@@ -89,10 +94,10 @@ Before you begin, make sure you have the following installed:
 
    ```ini
    # --- Database ---
-   DATABASE_URL=postgres://pguser:pgpass@localhost:5432/rugplay   # PostgreSQL connection string
+   DATABASE_URL=postgres://pguser:pgpass@localhost:5432/vellum   # PostgreSQL connection string
    POSTGRES_USER=pguser      # PostgreSQL username (should match Docker config)
    POSTGRES_PASSWORD=pgpass  # PostgreSQL password (should match Docker config)
-   POSTGRES_DB=rugplay       # PostgreSQL database name (should match Docker config)
+   POSTGRES_DB=vellum       # PostgreSQL database name (should match Docker config)
 
    # --- Redis ---
    REDIS_URL=redis://localhost:6379  # Redis connection string
@@ -169,6 +174,35 @@ Before you begin, make sure you have the following installed:
     This will automatically start all required services, including the Database, Redis and the websocket server, as Docker containers. You do not need to run the websocket server manually when using Docker Compose for deployment.
 
 2. The app will be available at http://localhost:3002
+
+#### Pointing your domain (vellum.chromitedev.xyz)
+
+Caddy is included in `docker-compose.yml` and serves the site with automatic HTTPS. To go live:
+
+1. **Create the DNS record** at your DNS provider (wherever `chromitedev.xyz` is registered):
+
+   | Type | Host  | Value            |
+   | ---- | ----- | ---------------- |
+   | A    | vellum | YOUR_SERVER_IP   |
+
+   If your DNS provider supports CNAME flattening you can use a CNAME instead, but a plain `A` record to your server's IPv4 address is the most reliable.
+
+2. **Open ports 80 and 443** on your server's firewall (Caddy needs them for HTTP and HTTPS).
+
+3. **Set the production URLs** in `website/.env`:
+
+   ```ini
+   PUBLIC_BETTER_AUTH_URL=https://vellum.chromitedev.xyz
+   PUBLIC_WEBSOCKET_URL=wss://vellum.chromitedev.xyz/ws
+   ```
+
+4. **Rebuild and restart:**
+
+   ```bash
+   ./build.sh
+   ```
+
+Caddy fetches a Let's Encrypt certificate automatically and renews it for you. The site will be live at https://vellum.chromitedev.xyz.
 
 #### Manual Deployment
 

@@ -9,6 +9,7 @@
 	import ProfileSkeleton from '$lib/components/self/skeletons/ProfileSkeleton.svelte';
 	import SEO from '$lib/components/self/SEO.svelte';
 	import { getPublicUrl, formatPrice, formatValue, formatQuantity, formatDate } from '$lib/utils';
+	import { getBannerPreset } from '$lib/data/profile-customization';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { HugeiconsIcon } from '@hugeicons/svelte';
@@ -19,11 +20,12 @@
 		TradeDownIcon,
 		Coins01Icon,
 		Activity01Icon,
-		PercentIcon,
 		Invoice03Icon,
 		Award05Icon,
-		UnavailableIcon
+		UnavailableIcon,
+		GameController03Icon
 	} from '@hugeicons/core-free-icons';
+	import { Gem, Package, Trophy, Play, Pause } from 'lucide-svelte';
 	import { goto } from '$app/navigation';
 	import { USER_DATA } from '$lib/stores/user-data';
 	import * as Tooltip from '$lib/components/ui/tooltip';
@@ -207,18 +209,76 @@
 
 	let totalTradingVolume24h = $derived(buyVolume24h + sellVolume24h);
 
-	// Arcade stats
+	// Arcade records (money amounts)
 	let arcadeWins = $derived(
 		profileData?.profile?.arcadeWins ? Number(profileData.profile.arcadeWins) : 0
 	);
 	let arcadeLosses = $derived(
 		profileData?.profile?.arcadeLosses ? Number(profileData.profile.arcadeLosses) : 0
 	);
-	let totalPlayed = $derived(arcadeWins + arcadeLosses);
-	let netProfit = $derived(arcadeWins - arcadeLosses);
-	let winRate = $derived(
-		totalPlayed > 0 ? ((arcadeWins / totalPlayed) * 100).toFixed(1) : '0.0'
+	let arcadeNet = $derived(arcadeWins - arcadeLosses);
+	let gamesPlayed = $derived(
+		profileData?.profile?.totalArcadeGamesPlayed
+			? Number(profileData.profile.totalArcadeGamesPlayed)
+			: 0
 	);
+	let bestWinStreak = $derived(
+		profileData?.profile?.arcadeBestWinStreak ? Number(profileData.profile.arcadeBestWinStreak) : 0
+	);
+	let totalWagered = $derived(
+		profileData?.profile?.totalArcadeWagered ? Number(profileData.profile.totalArcadeWagered) : 0
+	);
+
+	// Identity / collection
+	let gems = $derived(profileData?.profile?.gems ? Number(profileData.profile.gems) : 0);
+	let cratesOpened = $derived(
+		profileData?.profile?.cratesOpened ? Number(profileData.profile.cratesOpened) : 0
+	);
+	let prestigeLevel = $derived(
+		profileData?.profile?.prestigeLevel ? Number(profileData.profile.prestigeLevel) : 0
+	);
+
+	let bannerGradient = $derived.by(() => {
+		if (prestigeLevel >= 5)
+			return 'linear-gradient(120deg, rgb(251 191 36 / 0.32), rgb(249 115 22 / 0.12) 55%, transparent)';
+		if (prestigeLevel >= 3)
+			return 'linear-gradient(120deg, rgb(217 70 239 / 0.28), rgb(168 85 247 / 0.12) 55%, transparent)';
+		if (prestigeLevel >= 1)
+			return 'linear-gradient(120deg, rgb(59 130 246 / 0.28), rgb(99 102 241 / 0.12) 55%, transparent)';
+		return 'linear-gradient(120deg, rgb(139 92 246 / 0.3), rgb(99 102 241 / 0.14) 55%, transparent)';
+	});
+
+	let profileBannerCss = $derived.by(() => {
+		const p = profileData?.profile;
+		if (p?.bannerImage) return 'transparent';
+		const preset = getBannerPreset(p?.bannerColor);
+		if (preset) return preset.css;
+		return bannerGradient;
+	});
+
+	let profileSongKey = $derived(profileData?.profile?.profileSong ?? null);
+	let profileSongName = $derived(profileData?.profile?.profileSongName ?? 'Profile track');
+	let hasSong = $derived(!!profileSongKey);
+
+	let musicPlaying = $state(false);
+	let musicAudio: HTMLAudioElement | undefined = undefined;
+	function toggleMusic() {
+		if (!hasSong) return;
+		if (musicPlaying) {
+			musicAudio?.pause();
+			musicPlaying = false;
+			return;
+		}
+		const src = getPublicUrl(profileSongKey);
+		if (!src) return;
+		if (!musicAudio) {
+			musicAudio = new Audio(src);
+			musicAudio.loop = true;
+			musicAudio.volume = 0.4;
+		}
+		musicAudio.play().catch(() => {});
+		musicPlaying = true;
+	}
 
 	const createdCoinsColumns = [
 		{
@@ -419,17 +479,17 @@
 
 <SEO
 	title={profileData?.profile?.name
-		? `${profileData.profile.name} (@${profileData.profile.username}) - Rugplay`
-		: `@${username} - Rugplay`}
+		? `${profileData.profile.name} (@${profileData.profile.username}) - Vellum`
+		: `@${username} - Vellum`}
 	description={profileData?.profile?.bio
-		? `${profileData.profile.bio} - View ${profileData.profile.name}'s simulated trading activity and virtual portfolio in the Rugplay cryptocurrency simulation game.`
-		: `View @${username}'s profile and simulated trading activity in Rugplay - cryptocurrency trading simulation game platform.`}
+		? `${profileData.profile.bio} - View ${profileData.profile.name}'s trading activity and portfolio on Vellum.`
+		: `View @${username}'s profile and trading activity on Vellum.`}
 	type="profile"
 	image={profileData?.profile?.image ? getPublicUrl(profileData.profile.image) : '/apple-touch-icon.png'}
 	imageAlt={profileData?.profile?.name
 		? `${profileData.profile.name}'s profile picture`
 		: `@${username}'s profile`}
-	keywords="crypto trader profile game, virtual trading portfolio, cryptocurrency simulation game, user portfolio simulator"
+	keywords="crypto trader profile, trading portfolio, user portfolio, vellum profile"
 	twitterCard="summary"
 />
 
@@ -444,49 +504,95 @@
 			</div>
 		</div>
 	{:else}
-		<!-- Profile Header Card -->
-		<Card.Root class="mb-6 py-0">
-			<Card.Content class="p-6">
-				<div class="flex flex-col gap-4 sm:flex-row sm:items-start">
-					<!-- Avatar -->
-					<div class="flex-shrink-0">
-						<Avatar.Root class="size-20 sm:size-24">
+		<!-- Profile Header Hero -->
+		<Card.Root class="mb-6 overflow-hidden py-0">
+			<div
+				class="relative h-28 overflow-hidden sm:h-32"
+				style="background: {profileBannerCss};"
+			>
+				{#if profileData.profile.bannerImage}
+					<img
+						src={getPublicUrl(profileData.profile.bannerImage)}
+						alt={`${profileData.profile.name}'s banner`}
+						class="h-full w-full object-cover"
+					/>
+				{/if}
+				<div
+					class="pointer-events-none absolute -right-10 -top-12 h-44 w-44 rounded-full bg-white/5 blur-2xl"
+				></div>
+				{#if hasSong}
+					<button
+						type="button"
+						onclick={toggleMusic}
+						class="absolute right-3 top-3 flex items-center gap-2 rounded-full bg-black/50 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/70"
+					>
+						{#if musicPlaying}
+							<Pause class="h-3.5 w-3.5" />
+						{:else}
+							<Play class="h-3.5 w-3.5" />
+						{/if}
+						<span class="max-w-[140px] truncate">{profileSongName}</span>
+					</button>
+				{/if}
+			</div>
+			<Card.Content class="px-6 pt-0 pb-6">
+				<div class="flex flex-col gap-4 sm:flex-row sm:items-end">
+					<div class="-mt-12 flex-shrink-0 sm:-mt-14">
+						<Avatar.Root class="bg-card size-24 border-4 border-card sm:size-28">
 							<Avatar.Image
 								src={getPublicUrl(profileData.profile.image)}
 								alt={profileData.profile.name}
 							/>
-							<Avatar.Fallback class="text-xl"
+							<Avatar.Fallback class="text-2xl"
 								>{profileData.profile.name.charAt(0).toUpperCase()}</Avatar.Fallback
 							>
 						</Avatar.Root>
 					</div>
 
-					<!-- Profile Info -->
-					<div class="min-w-0 flex-1">
-						<div class="mb-3">
-							<div class="mb-1 flex flex-wrap items-center gap-2">
-								<h1 class="text-2xl font-bold sm:text-3xl"><UserName name={profileData.profile.name} nameColor={profileData.profile.nameColor} /></h1>
-
-								<!-- Badges -->
-								<ProfileBadges user={profileData.profile} />
-							</div>
-							<p class="text-muted-foreground text-lg">@{profileData.profile.username}</p>
+					<div class="min-w-0 flex-1 pb-1">
+						<div class="flex flex-wrap items-center gap-2">
+							<h1 class="text-2xl font-bold sm:text-3xl"><UserName name={profileData.profile.name} nameColor={profileData.profile.nameColor} /></h1>
+							<ProfileBadges user={profileData.profile} />
 						</div>
+						<p class="text-muted-foreground text-base sm:text-lg">@{profileData.profile.username}</p>
 
 						{#if profileData.profile.bio}
-							<p class="text-muted-foreground mb-3 max-w-2xl leading-relaxed">
+							<p class="text-muted-foreground mt-2 max-w-2xl leading-relaxed">
 								{profileData.profile.bio}
 							</p>
 						{/if}
 
-						<div class="text-muted-foreground flex items-center gap-2 text-sm">
-							<HugeiconsIcon icon={Calendar01Icon} class="h-4 w-4" />
-							<span>Joined {memberSince}</span>
+						<div
+							class="text-muted-foreground mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm"
+						>
+							<span class="inline-flex items-center gap-1.5">
+								<HugeiconsIcon icon={Calendar01Icon} class="h-4 w-4" />
+								Joined {memberSince}
+							</span>
+							{#if gems > 0}
+								<span class="inline-flex items-center gap-1.5">
+									<Gem class="text-primary h-4 w-4" />
+									{formatQuantity(gems)} gems
+								</span>
+							{/if}
+							{#if cratesOpened > 0}
+								<span class="inline-flex items-center gap-1.5">
+									<Package class="text-primary h-4 w-4" />
+									{cratesOpened} crates opened
+								</span>
+							{/if}
+							{#if profileData.profile.trophyCount > 0}
+								<span class="inline-flex items-center gap-1.5">
+									<Trophy class="h-4 w-4 text-yellow-500" />
+									{profileData.profile.trophyCount}
+									{profileData.profile.trophyCount === 1 ? 'trophy' : 'trophies'}
+								</span>
+							{/if}
 						</div>
-
 					</div>
+
 					{#if $USER_DATA && !isOwnProfile}
-						<div class="ml-auto self-start">
+						<div class="self-start">
 							<Tooltip.Provider>
 								<Tooltip.Root>
 									<Tooltip.Trigger>
@@ -650,68 +756,66 @@
 			</Card.Root>
 		</div>
 
-		<!-- Arcade Stats -->
-		<div class="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-4">
-			<!-- Total Wins -->
-			<Card.Root class="py-0">
-				<Card.Content class="p-4">
-					<div class="flex items-center justify-between">
-						<div class="text-foreground text-sm font-medium">Total Wins</div>
-						<HugeiconsIcon icon={TradeUpIcon} class="text-success h-4 w-4" />
-					</div>
-					<div class="text-success mt-1 text-2xl font-bold">
-						{formatValue(arcadeWins)}
-					</div>
-					<div class="text-muted-foreground text-xs">Total arcade winnings</div>
-				</Card.Content>
-			</Card.Root>
-
-			<!-- Total Losses -->
-			<Card.Root class="py-0">
-				<Card.Content class="p-4">
-					<div class="flex items-center justify-between">
-						<div class="text-foreground text-sm font-medium">Total Losses</div>
-						<HugeiconsIcon icon={TradeDownIcon} class="h-4 w-4 text-red-600" />
-					</div>
-					<div class="mt-1 text-2xl font-bold text-red-600">
-						{formatValue(arcadeLosses)}
-					</div>
-					<div class="text-muted-foreground text-xs">Total arcade losses</div>
-				</Card.Content>
-			</Card.Root>
-
-			<!-- Win Rate -->
-			<Card.Root class="py-0">
-				<Card.Content class="p-4">
-					<div class="flex items-center justify-between">
-						<div class="text-muted-foreground text-sm font-medium">Win Rate</div>
-						<HugeiconsIcon icon={PercentIcon} class="text-muted-foreground h-4 w-4" />
-					</div>
-					<div class="mt-1 text-2xl font-bold">
-						{winRate}%
-					</div>
-					<div class="text-muted-foreground text-xs">Percentage of wins</div>
-				</Card.Content>
-			</Card.Root>
-
-			<!-- Net Profit -->
-			<Card.Root class="py-0">
-				<Card.Content class="p-4">
-					<div class="flex items-center justify-between">
-						<div class="text-muted-foreground text-sm font-medium">Net Profit</div>
-					</div>
-					<div class="mt-1 text-2xl font-bold" class:text-success={netProfit >= 0} class:text-red-600={netProfit < 0}>
-						{#if netProfit >= 0}
-							{formatValue(netProfit)}
-						{:else}
-							-{formatValue(Math.abs(netProfit))}
-						{/if}
-					</div>
-					<div class="text-muted-foreground text-xs">
-						{netProfit >= 0 ? 'Overall profit' : 'Overall loss'}
-					</div>
-				</Card.Content>
-			</Card.Root>
+		<!-- Arcade Records -->
+		<div class="mb-6">
+			<div class="mb-3 flex items-center gap-2">
+				<HugeiconsIcon icon={GameController03Icon} class="text-primary h-5 w-5" />
+				<h2 class="text-lg font-semibold">Arcade Records</h2>
+			</div>
+			<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+				<Card.Root class="min-w-0 py-0">
+					<Card.Content class="p-4">
+						<div class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Games</div>
+						<div class="mt-1 text-2xl font-bold tabular-nums">{gamesPlayed.toLocaleString()}</div>
+					</Card.Content>
+				</Card.Root>
+				<Card.Root class="min-w-0 py-0">
+					<Card.Content class="p-4">
+						<div class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Wagered</div>
+						<div class="mt-1 text-2xl font-bold break-all leading-tight tabular-nums">
+							{formatValue(totalWagered)}
+						</div>
+					</Card.Content>
+				</Card.Root>
+				<Card.Root class="min-w-0 py-0">
+					<Card.Content class="p-4">
+						<div class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Won</div>
+						<div class="text-success mt-1 text-2xl font-bold break-all leading-tight tabular-nums">
+							{formatValue(arcadeWins)}
+						</div>
+					</Card.Content>
+				</Card.Root>
+				<Card.Root class="min-w-0 py-0">
+					<Card.Content class="p-4">
+						<div class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Lost</div>
+						<div class="mt-1 text-2xl font-bold break-all leading-tight tabular-nums text-red-600">
+							{formatValue(arcadeLosses)}
+						</div>
+					</Card.Content>
+				</Card.Root>
+				<Card.Root class="min-w-0 py-0">
+					<Card.Content class="p-4">
+						<div class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Best Streak</div>
+						<div class="mt-1 text-2xl font-bold tabular-nums">{bestWinStreak}</div>
+					</Card.Content>
+				</Card.Root>
+				<Card.Root class="min-w-0 py-0">
+					<Card.Content class="p-4">
+						<div class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Net</div>
+						<div
+							class="mt-1 text-2xl font-bold break-all leading-tight tabular-nums {arcadeNet >= 0
+								? 'text-success'
+								: 'text-red-600'}"
+						>
+							{#if arcadeNet >= 0}
+								{formatValue(arcadeNet)}
+							{:else}
+								-{formatValue(Math.abs(arcadeNet))}
+							{/if}
+						</div>
+					</Card.Content>
+				</Card.Root>
+			</div>
 		</div>
 
 		<!-- Achievements -->

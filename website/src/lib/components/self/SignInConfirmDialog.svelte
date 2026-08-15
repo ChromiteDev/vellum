@@ -7,35 +7,221 @@
 		DialogDescription
 	} from '$lib/components/ui/dialog';
 	import { Button } from '$lib/components/ui/button';
-	import { signIn } from '$lib/auth-client';
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
+	import { signIn, signUp } from '$lib/auth-client';
 	import { page } from '$app/state';
+	import { invalidateAll } from '$app/navigation';
+	import { toast } from 'svelte-sonner';
 
-	async function onConfirm() {
+	let { open = $bindable(false) } = $props<{
+		open?: boolean;
+	}>();
+
+	let mode = $state<'signin' | 'signup'>('signin');
+	let name = $state('');
+	let email = $state('');
+	let password = $state('');
+	let confirm = $state('');
+	let loading = $state(false);
+	let error = $state('');
+
+	function reset() {
+		mode = 'signin';
+		name = '';
+		email = '';
+		password = '';
+		confirm = '';
+		loading = false;
+		error = '';
+	}
+
+	function switchMode(next: 'signin' | 'signup') {
+		if (loading) return;
+		mode = next;
+		error = '';
+	}
+
+	function friendlyMessage(message?: string): string {
+		if (!message) return 'Something went wrong. Please try again.';
+		const m = message.toLowerCase();
+		if (m.includes('invalid email or password')) return 'Incorrect email or password.';
+		if (m.includes('already exists') || m.includes('already been registered')) {
+			return 'An account with that email already exists. Sign in instead.';
+		}
+		if (m.includes('too short') || m.includes('password')) return 'Password must be at least 8 characters.';
+		if (m.includes('valid email')) return 'Please enter a valid email address.';
+		if (m.includes('rate limit') || m.includes('too many')) return 'Too many attempts. Wait a moment and try again.';
+		return message;
+	}
+
+	async function onGoogle() {
 		await signIn.social({
 			provider: 'google',
 			callbackURL: `${page.url.pathname}?signIn=1`
 		});
 	}
 
-	let { open = $bindable(false) } = $props<{
-		open?: boolean;
-	}>();
+	async function onSubmit() {
+		if (loading) return;
+		error = '';
+		loading = true;
+
+		try {
+			if (mode === 'signin') {
+				if (!email.trim() || !password) {
+					error = 'Enter your email and password.';
+					return;
+				}
+				const res = await signIn.email({
+					email: email.trim(),
+					password
+				});
+				if (res.error) {
+					error = friendlyMessage(res.error.message);
+					return;
+				}
+			} else {
+				if (name.trim().length < 2) {
+					error = 'Enter a display name.';
+					return;
+				}
+				if (!email.trim()) {
+					error = 'Enter your email.';
+					return;
+				}
+				if (password.length < 8) {
+					error = 'Password must be at least 8 characters.';
+					return;
+				}
+				if (password !== confirm) {
+					error = 'Passwords do not match.';
+					return;
+				}
+				const res = await signUp.email({
+					name: name.trim(),
+					email: email.trim(),
+					password
+				});
+				if (res.error) {
+					error = friendlyMessage(res.error.message);
+					return;
+				}
+			}
+
+			toast.success(mode === 'signin' ? 'Welcome back!' : 'Welcome to Vellum!');
+			open = false;
+			reset();
+			await invalidateAll();
+		} catch {
+			error = 'Something went wrong. Please try again.';
+		} finally {
+			loading = false;
+		}
+	}
 </script>
 
-<Dialog bind:open>
+<Dialog bind:open onOpenChange={(o) => { if (!o) reset(); }}>
 	<DialogContent class="sm:max-w-md">
 		<DialogHeader>
-			<DialogTitle>Sign in to Rugplay</DialogTitle>
+			<DialogTitle>Welcome to Vellum</DialogTitle>
 			<DialogDescription>
-				Choose a service to sign in with. Your account will be created automatically if you don't
-				have one.
+				{mode === 'signin'
+					? 'Sign in to your account and get back to trading.'
+					: 'Create a free account and start building your portfolio.'}
 			</DialogDescription>
 		</DialogHeader>
-		<div class="flex flex-col gap-4 py-2">
+
+		<div class="flex flex-col gap-5 py-2">
+			<div class="bg-muted/50 grid grid-cols-2 gap-1 rounded-lg p-1">
+				<button
+					type="button"
+					onclick={() => switchMode('signin')}
+					class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {mode === 'signin'
+						? 'bg-background text-foreground shadow-xs'
+						: 'text-muted-foreground hover:text-foreground'}"
+				>
+					Sign in
+				</button>
+				<button
+					type="button"
+					onclick={() => switchMode('signup')}
+					class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {mode === 'signup'
+						? 'bg-background text-foreground shadow-xs'
+						: 'text-muted-foreground hover:text-foreground'}"
+				>
+					Create account
+				</button>
+			</div>
+
+			<form class="flex flex-col gap-3" onsubmit={(e) => { e.preventDefault(); onSubmit(); }}>
+				{#if mode === 'signup'}
+					<div class="space-y-1.5">
+						<Label for="auth-name">Display name</Label>
+						<Input
+							id="auth-name"
+							bind:value={name}
+							placeholder="How people will see you"
+							autocomplete="nickname"
+							maxlength={30}
+						/>
+					</div>
+				{/if}
+
+				<div class="space-y-1.5">
+					<Label for="auth-email">Email</Label>
+					<Input
+						id="auth-email"
+						type="email"
+						bind:value={email}
+						placeholder="you@example.com"
+						autocomplete="email"
+					/>
+				</div>
+
+				<div class="space-y-1.5">
+					<Label for="auth-password">Password</Label>
+					<Input
+						id="auth-password"
+						type="password"
+						bind:value={password}
+						placeholder={mode === 'signup' ? 'At least 8 characters' : 'Your password'}
+						autocomplete={mode === 'signup' ? 'new-password' : 'current-password'}
+					/>
+				</div>
+
+				{#if mode === 'signup'}
+					<div class="space-y-1.5">
+						<Label for="auth-confirm">Confirm password</Label>
+						<Input
+							id="auth-confirm"
+							type="password"
+							bind:value={confirm}
+							placeholder="Re-enter your password"
+							autocomplete="new-password"
+						/>
+					</div>
+				{/if}
+
+				{#if error}
+					<p class="text-destructive text-sm font-medium" role="alert">{error}</p>
+				{/if}
+
+				<Button type="submit" class="w-full" disabled={loading}>
+					{loading ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Create account'}
+				</Button>
+			</form>
+
+			<div class="flex items-center gap-3">
+				<span class="bg-border h-px flex-1"></span>
+				<span class="text-muted-foreground text-xs">or continue with</span>
+				<span class="bg-border h-px flex-1"></span>
+			</div>
+
 			<Button
 				class="flex w-full items-center justify-center gap-2"
 				variant="outline"
-				onclick={() => onConfirm()}
+				onclick={onGoogle}
 			>
 				<img
 					class="h-5 w-5"

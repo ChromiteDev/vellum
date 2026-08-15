@@ -30,7 +30,7 @@ export const POST: RequestHandler = async ({ request }) => {
         const roundedBet = validateBetAmount(amount);
 
         const userId = Number(session.user.id);
-        const symbols = ['bussin', 'lyntr', 'subterfuge', 'twoblade', 'wattesigma', 'webx'];
+        const symbols = ['bell', 'cherry', 'diamond', 'gem', 'star', 'seven'];
 
         const result = await db.transaction(async (tx) => {
             const [userData] = await tx

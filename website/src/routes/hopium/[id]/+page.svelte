@@ -207,12 +207,12 @@
 
 <SEO
 	title={question
-		? `${question.question} - Hopium - Rugplay`
-		: 'Loading Question - Hopium - Rugplay'}
+		? `${question.question} - Hopium - Vellum`
+		: 'Loading Question - Hopium - Vellum'}
 	description={question
-		? `Predict "${question.question}" in Rugplay's AI-powered prediction market. Current odds: ${question.yesPercentage.toFixed(1)}% YES, ${question.noPercentage.toFixed(1)}% NO. Total volume: $${question.totalAmount.toFixed(2)}.`
-		: 'AI-powered prediction market question in the Rugplay simulation game.'}
-	keywords="AI prediction market question, virtual prediction, cryptocurrency prediction game, yes no prediction, forecasting simulation"
+		? `Predict "${question.question}" in Vellum's AI-powered prediction market. Current odds: ${question.yesPercentage.toFixed(1)}% YES, ${question.noPercentage.toFixed(1)}% NO. Total volume: $${question.totalAmount.toFixed(2)}.`
+		: 'AI-powered prediction market question on Vellum.'}
+	keywords="AI prediction market question, prediction question, yes no prediction, forecasting"
 />
 
 <div class="container mx-auto max-w-7xl p-6">

@@ -9,13 +9,13 @@
 	import SEO from '$lib/components/self/SEO.svelte';
 
 	const LAST_UPDATED = 'February 21, 2026';
-	const CONTACT_EMAIL = 'contact@outpoot.com';
+	const CONTACT_EMAIL = 'contact@vellum.com';
 </script>
 
 <SEO 
-	title="Privacy Policy - Rugplay"
-	description="Privacy Policy for Rugplay cryptocurrency simulation game. Learn about data collection, account deletion process, virtual currency privacy, and your rights."
-	keywords="privacy policy, data protection, account deletion, virtual currency privacy, simulation game privacy"
+	title="Privacy Policy - Vellum"
+	description="Privacy Policy for Vellum. How we handle data, account deletion, and your rights."
+	keywords="privacy policy, data protection, account deletion, privacy"
 />
 
 <div class="container mx-auto max-w-4xl py-10">
@@ -46,11 +46,11 @@
 				<h2 class="mb-4 text-2xl font-semibold">1. Our Privacy Commitment</h2>
 				<p class="mb-4">
 					We are committed to protecting your privacy while providing a secure and functional crypto
-					trading simulation platform. This policy explains exactly what data we collect, how we use
+					trading platform. This policy explains exactly what data we collect, how we use
 					it, and what happens when you delete your account.
 				</p>
 				<p>
-					<strong>Platform Note:</strong> Rugplay is a simulated trading environment using virtual currency
+					<strong>Platform Note:</strong> Vellum is a paper-trading environment using in-game currency
 					("*BUSS" or "$") with no real monetary value.
 				</p>
 			</Card.Content>
@@ -400,7 +400,7 @@
 					<strong>Contact:</strong>
 					<a href="mailto:{CONTACT_EMAIL}" class="text-primary underline">{CONTACT_EMAIL}</a>
 				</p>
-				<p><strong>Platform:</strong> Rugplay - virtual cryptocurrency trading simulation</p>
+				<p><strong>Platform:</strong> Vellum - virtual cryptocurrency trading simulation</p>
 			</div>
 		</div>
 

@@ -209,9 +209,9 @@
 </script>
 
 <SEO 
-	title="Treemap - Rugplay"
-	description="Interactive virtual cryptocurrency market treemap visualization. View simulated market cap and 24h price changes for all coins in our trading game's visual treemap format."
-	keywords="virtual cryptocurrency treemap, market visualization game, crypto market cap simulation, price changes game, market analysis simulator"
+	title="Treemap - Vellum"
+	description="Interactive market treemap for Vellum. See market cap and 24h price changes for every coin at a glance."
+	keywords="cryptocurrency treemap, market visualization, market cap, price changes, market analysis"
 />
 
 <div

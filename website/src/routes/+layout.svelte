@@ -8,7 +8,7 @@
 
 	import { USER_DATA } from '$lib/stores/user-data';
 	import { onMount, untrack } from 'svelte';
-	import { invalidateAll } from '$app/navigation';
+	import { invalidateAll, onNavigate } from '$app/navigation';
 	import { ModeWatcher } from 'mode-watcher';
 	import { page } from '$app/state';
 	import { websocketController } from '$lib/stores/websocket';
@@ -22,6 +22,17 @@
 	untrack(() => USER_DATA.set(data?.userSession ?? null));
 	$effect(() => {
 		USER_DATA.set(data?.userSession ?? null);
+	});
+
+	onNavigate((navigation) => {
+		if (typeof document === 'undefined' || !('startViewTransition' in document)) return;
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+		return new Promise((resolve) => {
+			document.startViewTransition(async () => {
+				resolve();
+				await navigation.complete;
+			});
+		});
 	});
 
 	onMount(() => {
@@ -56,11 +67,11 @@
 			'color: #4962ee; font-family: monospace; font-size: 12px; font-weight: bold; text-shadow: 2px 2px rgba(0,0,0,0.2);'
 		);
 		console.log(
-			'%c Welcome to Rugplay! DO NOT FUCKING PASTE ANYTHING IN THE CONSOLE UNLESS YOU KNOW WHAT YOU ARE DOING.',
+			'%c Welcome to Vellum! Do not paste anything in the console unless you know what you are doing.',
 			'color: #4962ee; font-family: monospace; font-size: 12px; font-weight: bold; text-shadow: 2px 2px rgba(0,0,0,0.2);'
 		);
 		console.log(
-			'%c A product by Outpoot.com',
+			'%c A product by Vellum.com',
 			'color: #4962ee; font-family: monospace; font-size: 12px; font-weight: bold; text-shadow: 2px 2px rgba(0,0,0,0.2);'
 		);
 
@@ -77,7 +88,7 @@
 	});
 
 	function getPageTitle(routeId: string | null): string {
-		if (!routeId) return 'Rugplay';
+		if (!routeId) return 'Vellum';
 
 		const titleMap: Record<string, string> = {
 			'/': 'Home',
@@ -98,6 +109,7 @@
 			'/legal/privacy': 'Privacy Policy',
 			'/legal/terms': 'Terms of Service',
 			'/shop': 'Shop',
+			'/roadmap': 'Roadmap',
 		};
 
 		// Handle dynamic routes
@@ -111,7 +123,7 @@
 			return 'Prediction Question';
 		}
 
-		return titleMap[routeId] || 'Rugplay';
+		return titleMap[routeId] || 'Vellum';
 	}
 
 </script>
@@ -119,6 +131,8 @@
 <!-- <RenderScan /> -->
 <ModeWatcher />
 <Toaster richColors={true} />
+
+<div class="ambient" aria-hidden="true"></div>
 
 <Sidebar.Provider>
 	<AppSidebar />

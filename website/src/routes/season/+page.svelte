@@ -136,8 +136,8 @@
 </script>
 
 <SEO
-	title={season ? `${season.name} — Rugplay` : 'Season — Rugplay'}
-	description="Rugplay season standings. Everyone starts from the same stake."
+	title={season ? `${season.name} — Vellum` : 'Season — Vellum'}
+	description="Vellum season standings. Everyone starts from the same stake."
 />
 <SignInConfirmDialog bind:open={shouldSignIn} />
 

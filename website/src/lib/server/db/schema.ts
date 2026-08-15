@@ -17,13 +17,14 @@ export const user = pgTable("user", {
 	createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 	updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 	isAdmin: boolean("is_admin").default(false),
+	isFounder: boolean("is_founder").default(false),
 	isBanned: boolean("is_banned").default(false),
 	banReason: text("ban_reason"),
 	baseCurrencyBalance: decimal("base_currency_balance", {
 		precision: 30,
 		scale: 8,
 	}).notNull().default("100.00000000"), // $100
-	bio: varchar("bio", { length: 160 }).default("Hello am 48 year old man from somalia. Sorry for my bed england. I selled my wife for internet connection for play “conter stirk”"),
+	bio: varchar("bio", { length: 160 }).default("New to Vellum. Building my portfolio one coin at a time."),
 	username: varchar("username", { length: 30 }).notNull().unique(),
 
 	volumeMaster: decimal("volume_master", { precision: 3, scale: 2 }).notNull().default("0.70"),
@@ -55,6 +56,10 @@ export const user = pgTable("user", {
 	halloweenBadge2025: boolean("halloween_badge_2025").default(false),
 	gems: integer("gems").notNull().default(0),
 	nameColor: text("name_color"),
+	bannerImage: text("banner_image"),
+	bannerColor: text("banner_color"),
+	profileSong: text("profile_song"),
+	profileSongName: text("profile_song_name"),
 	founderBadge: boolean("founder_badge").notNull().default(false),
 	disableMentions: boolean("disable_mentions").notNull().default(false),
 }, (table) => {
@@ -444,3 +449,57 @@ export const userBlock = pgTable("user_block", {
 	blockedIdIdx: index("user_block_blocked_id_idx").on(table.blockedId),
 	noSelfBlock: check("no_self_block", sql`blocker_id != blocked_id`),
 }));
+
+export const auditLog = pgTable("audit_log", {
+	id: serial("id").primaryKey(),
+	adminId: integer("admin_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+	targetUserId: integer("target_user_id").references(() => user.id, { onDelete: "set null" }),
+	action: text("action").notNull(),
+	currency: text("currency"),
+	amount: decimal("amount", { precision: 30, scale: 8 }),
+	previousValue: text("previous_value"),
+	newValue: text("new_value"),
+	reason: text("reason"),
+	metadata: text("metadata"),
+	ipAddress: text("ip_address"),
+	createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => {
+	return {
+		adminIdIdx: index("audit_log_admin_id_idx").on(table.adminId),
+		targetUserIdIdx: index("audit_log_target_user_id_idx").on(table.targetUserId),
+		createdAtIdx: index("audit_log_created_at_idx").on(table.createdAt),
+	};
+});
+
+export const featureRequest = pgTable("feature_request", {
+	id: serial("id").primaryKey(),
+	title: varchar("title", { length: 120 }).notNull(),
+	description: text("description").notNull(),
+	category: varchar("category", { length: 40 }).notNull().default("General"),
+	status: varchar("status", { length: 30 }).notNull().default("under_review"),
+	voteCount: integer("vote_count").notNull().default(0),
+	creatorId: integer("creator_id").references(() => user.id, { onDelete: "set null" }),
+	devResponse: text("dev_response"),
+	devRespondedAt: timestamp("dev_responded_at", { withTimezone: true }),
+	createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => {
+	return {
+		creatorIdIdx: index("feature_request_creator_id_idx").on(table.creatorId),
+		statusIdx: index("feature_request_status_idx").on(table.status),
+		voteCountIdx: index("feature_request_vote_count_idx").on(table.voteCount),
+	};
+});
+
+export const featureVote = pgTable("feature_vote", {
+	id: serial("id").primaryKey(),
+	userId: integer("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+	requestId: integer("request_id").notNull().references(() => featureRequest.id, { onDelete: "cascade" }),
+	createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => {
+	return {
+		userRequestUnique: unique("feature_vote_unique").on(table.userId, table.requestId),
+		userIdIdx: index("feature_vote_user_id_idx").on(table.userId),
+		requestIdIdx: index("feature_vote_request_id_idx").on(table.requestId),
+	};
+});

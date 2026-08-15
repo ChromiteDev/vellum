@@ -34,14 +34,14 @@
 	} = $props();
 
 	const symbols = [
-		'bliptext',
-		'bussin',
-		'griddycode',
-		'lyntr',
-		'subterfuge',
-		'twoblade',
-		'wattesigma',
-		'webx'
+		'crown',
+		'bell',
+		'clover',
+		'cherry',
+		'diamond',
+		'gem',
+		'star',
+		'seven'
 	];
 
 	const BASE_SPINS_PER_REEL = [8, 10, 12];
@@ -263,7 +263,7 @@
 									{#each Array(NUM_RENDERED_CYCLES) as _, cycleInstanceIndex}
 										{#each logicalCycleData as symbol, symbolIndexInCycle}
 											<div class="symbol">
-												<img src="/facedev/avif/{symbol}.avif" alt={symbol} class="symbol-image" />
+												<img src="/games/{symbol}.svg" alt={symbol} class="symbol-image" />
 											</div>
 										{/each}
 									{/each}

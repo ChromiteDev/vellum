@@ -197,6 +197,85 @@ async function checkAchievement(
 			return Number(result[0]?.cnt ?? 0) > 0;
 		}
 
+		case 'day_trades_20': {
+			const [dayTrades] = await db
+				.select({ cnt: count() })
+				.from(transaction)
+				.where(
+					and(
+						eq(transaction.userId, userId),
+						sql`${transaction.type} IN ('BUY', 'SELL')`,
+						sql`${transaction.timestamp} >= (NOW() AT TIME ZONE 'UTC')::DATE`
+					)
+				);
+			return Number(dayTrades.cnt) >= 20;
+		}
+
+		case 'net_profit_100k':
+		case 'net_profit_1m': {
+			const [profitResult] = await db
+				.select({
+					net: sql<string>`COALESCE(SUM(CASE WHEN ${transaction.type} = 'SELL' THEN CAST(${transaction.totalBaseCurrencyAmount} AS NUMERIC) ELSE -CAST(${transaction.totalBaseCurrencyAmount} AS NUMERIC) END), 0)`
+				})
+				.from(transaction)
+				.where(and(eq(transaction.userId, userId), sql`${transaction.type} IN ('BUY', 'SELL')`));
+			const threshold = achievementId === 'net_profit_100k' ? 100000 : 1000000;
+			return Number(profitResult.net) >= threshold;
+		}
+
+		case 'sell_100k':
+			return ctx.tradeType === 'SELL' && (ctx.tradeAmount ?? 0) >= 100000;
+
+		case 'hold_week': {
+			const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+			const result = await db.execute(sql`
+				WITH running AS (
+					SELECT t.coin_id, t.timestamp, t.type,
+						SUM(CASE WHEN t.type = 'BUY' THEN t.quantity::numeric
+								 WHEN t.type = 'SELL' THEN -t.quantity::numeric
+								 ELSE 0 END)
+						OVER (PARTITION BY t.coin_id ORDER BY t.timestamp) AS bal
+					FROM "transaction" t
+					WHERE t.user_id = ${userId}
+					AND t.type IN ('BUY', 'SELL')
+					AND t.coin_id IN (
+						SELECT coin_id FROM "user_portfolio"
+						WHERE user_id = ${userId} AND quantity::numeric > 0
+					)
+				),
+				last_zero AS (
+					SELECT coin_id, MAX(timestamp) AS zero_time
+					FROM running WHERE bal <= 0
+					GROUP BY coin_id
+				),
+				hold_start AS (
+					SELECT r.coin_id, MIN(r.timestamp) AS start_time
+					FROM running r
+					LEFT JOIN last_zero lz ON r.coin_id = lz.coin_id
+					WHERE r.type = 'BUY'
+					AND r.timestamp > COALESCE(lz.zero_time, '1970-01-01'::timestamptz)
+					GROUP BY r.coin_id
+				)
+				SELECT COUNT(*) AS cnt FROM hold_start
+				WHERE start_time <= ${sevenDaysAgo}
+			`);
+			return Number(result[0]?.cnt ?? 0) > 0;
+		}
+
+		case 'night_owl': {
+			const [owlResult] = await db
+				.select({ cnt: count() })
+				.from(transaction)
+				.where(
+					and(
+						eq(transaction.userId, userId),
+						sql`${transaction.type} IN ('BUY', 'SELL')`,
+						sql`EXTRACT(HOUR FROM ${transaction.timestamp} AT TIME ZONE 'UTC') BETWEEN 2 AND 4`
+					)
+				);
+			return Number(owlResult.cnt) > 0;
+		}
+
 		case 'true_dedication': {
 			// Check if user has bought at least $1000 worth of any single coin on each of the last 14 consecutive days with no sells ever on that coin
 			const result = await db.execute(sql`
@@ -232,11 +311,13 @@ async function checkAchievement(
 		case 'portfolio_1k':
 		case 'portfolio_100k':
 		case 'portfolio_1m':
+		case 'portfolio_10m':
 		case 'portfolio_1b': {
 			const thresholds: Record<string, number> = {
 				portfolio_1k: 1000,
 				portfolio_100k: 100000,
 				portfolio_1m: 1000000,
+				portfolio_10m: 10000000,
 				portfolio_1b: 1000000000
 			};
 			const [userData] = await db
@@ -256,6 +337,15 @@ async function checkAchievement(
 
 			const totalPortfolio = cash + Number(holdings?.value ?? 0);
 			return totalPortfolio >= thresholds[achievementId];
+		}
+
+		case 'cash_1m': {
+			const [cashUser] = await db
+				.select({ balance: user.baseCurrencyBalance })
+				.from(user)
+				.where(eq(user.id, userId))
+				.limit(1);
+			return Number(cashUser?.balance ?? 0) >= 1000000;
 		}
 
 		case 'broke': {
@@ -301,6 +391,24 @@ async function checkAchievement(
 			if (ctx.tradeType !== 'SELL' || !ctx.oldPrice || !ctx.newPrice) return false;
 			const sellPriceDrop = (ctx.oldPrice - ctx.newPrice) / ctx.oldPrice;
 			return sellPriceDrop >= 0.5;
+		}
+
+		case 'mc_100k':
+		case 'mc_1m': {
+			const threshold = achievementId === 'mc_100k' ? '100000.00' : '1000000.00';
+			const [mcResult] = await db
+				.select({ cnt: count() })
+				.from(coin)
+				.where(and(eq(coin.creatorId, userId), gte(coin.marketCap, threshold)));
+			return Number(mcResult.cnt) > 0;
+		}
+
+		case 'create_100': {
+			const [empireResult] = await db
+				.select({ cnt: count() })
+				.from(coin)
+				.where(eq(coin.creatorId, userId));
+			return Number(empireResult.cnt) >= 100;
 		}
 
 		// ARCADE
@@ -385,6 +493,49 @@ async function checkAchievement(
 			return Number(userData?.losses ?? 0) >= 1000000;
 		}
 
+		case 'arcade_10':
+		case 'arcade_500':
+		case 'arcade_1000': {
+			const thresholds: Record<string, number> = {
+				arcade_10: 10,
+				arcade_500: 500,
+				arcade_1000: 1000
+			};
+			const [gamesUser] = await db
+				.select({ total: user.totalArcadeGamesPlayed })
+				.from(user)
+				.where(eq(user.id, userId))
+				.limit(1);
+			return (gamesUser?.total ?? 0) >= thresholds[achievementId];
+		}
+
+		case 'arcade_10_streak': {
+			const [streakUser] = await db
+				.select({ best: user.arcadeBestWinStreak })
+				.from(user)
+				.where(eq(user.id, userId))
+				.limit(1);
+			return (streakUser?.best ?? 0) >= 10;
+		}
+
+		case 'arcade_1m_wagered': {
+			const [wagerUser] = await db
+				.select({ total: user.totalArcadeWagered })
+				.from(user)
+				.where(eq(user.id, userId))
+				.limit(1);
+			return Number(wagerUser?.total ?? 0) >= 1000000;
+		}
+
+		case 'arcade_wins_100k': {
+			const [winsUser] = await db
+				.select({ wins: user.arcadeWins })
+				.from(user)
+				.where(eq(user.id, userId))
+				.limit(1);
+			return Number(winsUser?.wins ?? 0) >= 100000;
+		}
+
 		// STREAKS
 		case 'first_claim':
 			return true; // if checking streaks category, user just claimed
@@ -395,12 +546,18 @@ async function checkAchievement(
 			return (ctx.newStreak ?? 0) >= 14;
 		case 'streak_30':
 			return (ctx.newStreak ?? 0) >= 30;
+		case 'streak_60':
+			return (ctx.newStreak ?? 0) >= 60;
+		case 'streak_100':
+			return (ctx.newStreak ?? 0) >= 100;
 
 		case 'rewards_100k':
 			return (ctx.totalRewardsClaimed ?? 0) >= 100000;
 		// PRESTIGE
 		case 'prestige_1':
 			return (ctx.newPrestigeLevel ?? 0) >= 1;
+		case 'prestige_2':
+			return (ctx.newPrestigeLevel ?? 0) >= 2;
 		case 'prestige_3':
 			return (ctx.newPrestigeLevel ?? 0) >= 3;
 		case 'prestige_5':
@@ -419,13 +576,30 @@ async function checkAchievement(
 		}
 
 		case 'win_10_bets':
-		case 'win_50_bets': {
-			const threshold = achievementId === 'win_10_bets' ? 10 : 50;
+		case 'win_50_bets':
+		case 'win_100_bets': {
+			const threshold: Record<string, number> = { win_10_bets: 10, win_50_bets: 50, win_100_bets: 100 };
 			const [result] = await db
 				.select({ cnt: count() })
 				.from(predictionBet)
 				.where(and(eq(predictionBet.userId, userId), gt(predictionBet.actualWinnings, '0')));
-			return Number(result.cnt) >= threshold;
+			return Number(result.cnt) >= threshold[achievementId];
+		}
+
+		case 'bet_100k_win': {
+			const [bigWin] = await db
+				.select({ cnt: count() })
+				.from(predictionBet)
+				.where(and(eq(predictionBet.userId, userId), gte(predictionBet.actualWinnings, '100000')));
+			return Number(bigWin.cnt) > 0;
+		}
+
+		case 'create_50_questions': {
+			const [questionCount] = await db
+				.select({ cnt: count() })
+				.from(predictionQuestion)
+				.where(eq(predictionQuestion.creatorId, userId));
+			return Number(questionCount.cnt) >= 50;
 		}
 
 		// SOCIAL
@@ -443,6 +617,48 @@ async function checkAchievement(
 				.from(comment)
 				.where(and(eq(comment.userId, userId), eq(comment.isDeleted, false)));
 			return Number(result.cnt) >= 50;
+		}
+
+		case 'comments_100':
+		case 'comments_500': {
+			const [result] = await db
+				.select({ cnt: count() })
+				.from(comment)
+				.where(and(eq(comment.userId, userId), eq(comment.isDeleted, false)));
+			const target = achievementId === 'comments_100' ? 100 : 500;
+			return Number(result.cnt) >= target;
+		}
+
+		case 'transfer_10k_single': {
+			const [result] = await db
+				.select({ cnt: count() })
+				.from(transaction)
+				.where(
+					and(
+						eq(transaction.userId, userId),
+						eq(transaction.type, 'TRANSFER_OUT'),
+						gte(transaction.totalBaseCurrencyAmount, '10000')
+					)
+				);
+			return Number(result.cnt) > 0;
+		}
+
+		case 'received_500k': {
+			const [result] = await db
+				.select({
+					total: sql<string>`COALESCE(SUM(CAST(${transaction.totalBaseCurrencyAmount} AS NUMERIC)), 0)`
+				})
+				.from(transaction)
+				.where(and(eq(transaction.userId, userId), eq(transaction.type, 'TRANSFER_IN')));
+			return Number(result.total) >= 500000;
+		}
+
+		case 'received_10_users': {
+			const [result] = await db
+				.select({ cnt: sql<string>`COUNT(DISTINCT ${transaction.senderUserId})` })
+				.from(transaction)
+				.where(and(eq(transaction.userId, userId), eq(transaction.type, 'TRANSFER_IN')));
+			return Number(result.cnt) >= 10;
 		}
 
 		case 'top_rugpuller': {
@@ -520,6 +736,23 @@ async function checkAchievement(
 			return (userData?.crates ?? 0) >= 50;
 		}
 
+		case 'own_25_colors': {
+			const [result] = await db
+				.select({ cnt: count() })
+				.from(userInventory)
+				.where(and(eq(userInventory.userId, userId), eq(userInventory.itemType, 'namecolor')));
+			return Number(result.cnt) >= 25;
+		}
+
+		case 'open_10_crates': {
+			const [userData] = await db
+				.select({ crates: user.cratesOpened })
+				.from(user)
+				.where(eq(user.id, userId))
+				.limit(1);
+			return (userData?.crates ?? 0) >= 10;
+		}
+
 		// SPECIAL
 		case 'all_in': {
 			if (ctx.tradeType !== 'BUY' || !ctx.tradeAmount || ctx.newBalance === undefined) return false;
@@ -536,6 +769,17 @@ async function checkAchievement(
 				.limit(1);
 			if (!userData) return false;
 			return userData.createdAt <= sixMonthsAgo;
+		}
+
+		case 'account_1yr': {
+			const yearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+			const [userData] = await db
+				.select({ createdAt: user.createdAt })
+				.from(user)
+				.where(eq(user.id, userId))
+				.limit(1);
+			if (!userData) return false;
+			return userData.createdAt <= yearAgo;
 		}
 
 		case 'season_entry':
@@ -840,6 +1084,90 @@ export async function getAchievementProgress(userId: number): Promise<Record<str
 			) sub
 		`);
 		progress['true_dedication'] = Number((dedicationResult as any)[0]?.best ?? 0);
+
+		const [cashRow] = await db
+			.select({ balance: user.baseCurrencyBalance })
+			.from(user)
+			.where(eq(user.id, userId))
+			.limit(1);
+		progress['cash_1m'] = Number(cashRow?.balance ?? 0);
+
+		const [todayTrades] = await db
+			.select({ cnt: count() })
+			.from(transaction)
+			.where(
+				and(
+					eq(transaction.userId, userId),
+					sql`${transaction.type} IN ('BUY', 'SELL')`,
+					sql`${transaction.timestamp} >= (NOW() AT TIME ZONE 'UTC')::DATE`
+				)
+			);
+		progress['day_trades_20'] = Number(todayTrades?.cnt ?? 0);
+
+		const [netProfit] = await db
+			.select({
+				net: sql<string>`COALESCE(SUM(CASE WHEN ${transaction.type} = 'SELL' THEN CAST(${transaction.totalBaseCurrencyAmount} AS NUMERIC) ELSE -CAST(${transaction.totalBaseCurrencyAmount} AS NUMERIC) END), 0)`
+			})
+			.from(transaction)
+			.where(and(eq(transaction.userId, userId), sql`${transaction.type} IN ('BUY', 'SELL')`));
+		const net = Number(netProfit?.net ?? 0);
+		progress['net_profit_100k'] = net;
+		progress['net_profit_1m'] = net;
+
+		const [mc100k] = await db
+			.select({ cnt: count() })
+			.from(coin)
+			.where(and(eq(coin.creatorId, userId), gte(coin.marketCap, '100000.00')));
+		const [mc1m] = await db
+			.select({ cnt: count() })
+			.from(coin)
+			.where(and(eq(coin.creatorId, userId), gte(coin.marketCap, '1000000.00')));
+		progress['mc_100k'] = Number(mc100k?.cnt ?? 0);
+		progress['mc_1m'] = Number(mc1m?.cnt ?? 0);
+		progress['create_100'] = coins;
+
+		progress['arcade_10'] = userData?.totalArcadeGamesPlayed ?? 0;
+		progress['arcade_500'] = userData?.totalArcadeGamesPlayed ?? 0;
+		progress['arcade_1000'] = userData?.totalArcadeGamesPlayed ?? 0;
+		progress['arcade_10_streak'] = userData?.arcadeBestWinStreak ?? 0;
+		progress['arcade_1m_wagered'] = Number(userData?.totalArcadeWagered ?? 0);
+		progress['arcade_wins_100k'] = Number(userData?.arcadeWins ?? 0);
+		progress['streak_60'] = userData?.loginStreak ?? 0;
+		progress['streak_100'] = userData?.loginStreak ?? 0;
+		progress['prestige_2'] = userData?.prestigeLevel ?? 0;
+		progress['open_10_crates'] = userData?.cratesOpened ?? 0;
+
+		progress['win_100_bets'] = betsWon;
+		progress['create_50_questions'] = Number(questionCount?.cnt ?? 0);
+		progress['comments_100'] = Number(commentCount?.cnt ?? 0);
+		progress['comments_500'] = Number(commentCount?.cnt ?? 0);
+		progress['own_25_colors'] = Number(colorCount?.cnt ?? 0);
+
+		const [bigSendCount] = await db
+			.select({ cnt: count() })
+			.from(transaction)
+			.where(
+				and(
+					eq(transaction.userId, userId),
+					eq(transaction.type, 'TRANSFER_OUT'),
+					gte(transaction.totalBaseCurrencyAmount, '10000')
+				)
+			);
+		progress['transfer_10k_single'] = Number(bigSendCount?.cnt ?? 0);
+
+		const [receivedTotal] = await db
+			.select({
+				total: sql<string>`COALESCE(SUM(CAST(${transaction.totalBaseCurrencyAmount} AS NUMERIC)), 0)`
+			})
+			.from(transaction)
+			.where(and(eq(transaction.userId, userId), eq(transaction.type, 'TRANSFER_IN')));
+		progress['received_500k'] = Number(receivedTotal?.total ?? 0);
+
+		const [bigBetCount] = await db
+			.select({ cnt: count() })
+			.from(predictionBet)
+			.where(and(eq(predictionBet.userId, userId), gte(predictionBet.actualWinnings, '100000')));
+		progress['bet_100k_win'] = Number(bigBetCount?.cnt ?? 0);
 	} catch (e) {
 		console.error('Achievement progress error:', e);
 	}

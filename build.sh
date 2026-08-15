@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Starting Rugplay deployment..."
+echo "🚀 Starting Vellum deployment..."
 echo "📥 Pulling latest changes..."
 git pull
 

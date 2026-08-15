@@ -1,5 +1,6 @@
 // FILE UPLOAD
 export const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
+export const MAX_SONG_SIZE = 20 * 1024 * 1024; // 20MB
 
 // COIN CREATION COSTS
 export const CREATION_FEE = 100; // $100 creation fee

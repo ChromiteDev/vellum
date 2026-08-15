@@ -133,9 +133,9 @@
 </script>
 
 <SEO
-	title="Hopium - Rugplay"
-	description="AI-powered prediction markets in the Rugplay simulation game. Create yes/no questions, predict outcomes with virtual currency, and test your forecasting skills."
-	keywords="AI prediction markets game, virtual prediction simulation, cryptocurrency prediction game, forecasting game, virtual currency predictions"
+	title="Hopium - Vellum"
+	description="AI-powered prediction markets on Vellum. Create yes/no questions, predict outcomes, and test your forecasting."
+	keywords="AI prediction markets, prediction questions, forecasting, market calls"
 />
 
 <!-- Create Question Dialog -->

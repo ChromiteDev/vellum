@@ -59,7 +59,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		});
 
 		try {
-			const { clearUserCache } = await import('$lib/../hooks.server.js');
+			const { clearUserCache } = await import('$lib/server/user-cache');
 			clearUserCache(targetUser.id.toString());
 		} catch (e) {
 			console.warn('Failed to clear user cache:', e);

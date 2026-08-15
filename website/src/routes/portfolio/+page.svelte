@@ -248,10 +248,10 @@
 </script>
 
 <SEO
-	title="Portfolio - Rugplay"
-	description="View your virtual cryptocurrency portfolio, simulated holdings, and trading performance in the Rugplay simulation game platform."
+	title="Portfolio - Vellum"
+	description="View your Vellum portfolio, holdings, and trading performance in one place."
 	noindex={true}
-	keywords="virtual portfolio management, crypto holdings game, trading performance simulator, investment tracking game"
+	keywords="portfolio management, crypto holdings, trading performance, investment tracking"
 />
 
 <SendMoneyModal bind:open={sendMoneyModalOpen} onSuccess={handleTransferSuccess} />

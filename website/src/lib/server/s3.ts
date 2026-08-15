@@ -74,6 +74,75 @@ export async function uploadProfilePicture(
     return key;
 }
 
+const SONG_EXTENSIONS: Record<string, string> = {
+    'audio/mpeg': 'mp3',
+    'audio/mp3': 'mp3',
+    'audio/wav': 'wav',
+    'audio/x-wav': 'wav',
+    'audio/ogg': 'ogg',
+    'audio/mp4': 'm4a',
+    'audio/x-m4a': 'm4a',
+    'audio/m4a': 'm4a',
+    'audio/aac': 'aac',
+    'audio/flac': 'flac',
+    'audio/webm': 'webm',
+};
+
+export async function uploadProfileSong(
+    identifier: string,
+    body: Uint8Array,
+    contentType: string,
+): Promise<string> {
+    const normalized = contentType?.toLowerCase() ?? '';
+    const ext = SONG_EXTENSIONS[normalized];
+    if (!ext) {
+        throw new Error('Unsupported audio format. Only MP3, WAV, OGG, M4A, AAC, FLAC, and WebM are allowed.');
+    }
+
+    const key = `songs/${identifier}.${ext}`;
+
+    const command = new PutObjectCommand({
+        Bucket: PUBLIC_B2_BUCKET,
+        Key: key,
+        Body: Buffer.from(body),
+        ContentType: normalized,
+        ContentLength: body.byteLength,
+    });
+
+    await s3Client.send(command);
+    return key;
+}
+
+export async function uploadBanner(
+    identifier: string,
+    body: Uint8Array,
+    contentType: string,
+): Promise<string> {
+    if (!contentType || !contentType.startsWith('image/')) {
+        throw new Error('Invalid file type. Only images are allowed.');
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(contentType.toLowerCase())) {
+        throw new Error('Unsupported image format. Only JPEG, PNG, GIF, and WebP are allowed.');
+    }
+
+    const processedImage = await processImage(Buffer.from(body));
+
+    const key = `banners/${identifier}.webp`;
+
+    const command = new PutObjectCommand({
+        Bucket: PUBLIC_B2_BUCKET,
+        Key: key,
+        Body: processedImage.buffer,
+        ContentType: processedImage.contentType,
+        ContentLength: processedImage.size,
+    });
+
+    await s3Client.send(command);
+    return key;
+}
+
 export async function uploadCoinIcon(
     coinSymbol: string,
     body: Uint8Array,

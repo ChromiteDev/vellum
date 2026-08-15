@@ -5,41 +5,8 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { HugeiconsIcon } from '@hugeicons/svelte';
-	import {
-		Moon01Icon,
-		Sun01Icon,
-		Home03Icon,
-		Store01Icon,
-		Briefcase01Icon,
-		Coins02Icon,
-		ArrowUpDownIcon,
-		Logout01Icon,
-		Wallet01Icon,
-		ChampionIcon,
-		Activity01Icon,
-		TradeUpIcon,
-		TradeDownIcon,
-		UserIcon,
-		Settings01Icon,
-		GiftIcon,
-		Shield01Icon,
-		Ticket01Icon,
-		PiggyBankIcon,
-		Analytics01Icon,
-		JusticeScale01Icon,
-		ShieldUserIcon,
-		LegalHammerIcon,
-		BookOpen01Icon,
-		InformationCircleIcon,
-		Notification01Icon,
-		CrownIcon,
-		Key01Icon,
-		Joystick04Icon,
-		ShoppingBasket01Icon,
-		GemIcon,
-		Award05Icon,
-		ArrowDown01Icon
-	} from '@hugeicons/core-free-icons';
+	import { Activity01Icon, TradeUpIcon, TradeDownIcon, Wallet01Icon, CrownIcon, GemIcon, ArrowDown01Icon } from '@hugeicons/core-free-icons';
+	import VellumIcon, { type VellumIconName } from './VellumIcon.svelte';
 	import { mode, setMode } from 'mode-watcher';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import { USER_DATA } from '$lib/stores/user-data';
@@ -59,20 +26,21 @@
 	import { ARCADE_STATS, fetchArcadeStats } from '$lib/stores/arcade-stats';
 	import { GEMS_BALANCE, fetchGemsBalance } from '$lib/stores/gems';
 
-	const data = {
+	const data: { navMain: { title: string; url: string; icon: VellumIconName }[] } = {
 		navMain: [
-			{ title: 'Home', url: '/', icon: Home03Icon },
-			{ title: 'Market', url: '/market', icon: Store01Icon },
-			{ title: 'Hopium', url: '/hopium', icon: ArrowUpDownIcon },
-			{ title: 'Arcade', url: '/arcade', icon: Joystick04Icon },
-			{ title: 'Leaderboard', url: '/leaderboard', icon: ChampionIcon },
-			{ title: 'Shop', url: '/shop', icon: ShoppingBasket01Icon },
-			{ title: 'Achievements', url: '/achievements', icon: Award05Icon },
-			{ title: 'Portfolio', url: '/portfolio', icon: Briefcase01Icon },
-			{ title: 'Treemap', url: '/treemap', icon: Analytics01Icon },
-			{ title: 'Create coin', url: '/coin/create', icon: Coins02Icon },
-			{ title: 'Notifications', url: '/notifications', icon: Notification01Icon },
-			{ title: 'About', url: '/about', icon: InformationCircleIcon }
+			{ title: 'Home', url: '/', icon: 'home' },
+			{ title: 'Market', url: '/market', icon: 'market' },
+			{ title: 'Hopium', url: '/hopium', icon: 'hopium' },
+			{ title: 'Arcade', url: '/arcade', icon: 'arcade' },
+			{ title: 'Leaderboard', url: '/leaderboard', icon: 'leaderboard' },
+			{ title: 'Shop', url: '/shop', icon: 'shop' },
+			{ title: 'Achievements', url: '/achievements', icon: 'achievements' },
+			{ title: 'Roadmap', url: '/roadmap', icon: 'community' },
+			{ title: 'Portfolio', url: '/portfolio', icon: 'portfolio' },
+			{ title: 'Treemap', url: '/treemap', icon: 'treemap' },
+			{ title: 'Create coin', url: '/coin/create', icon: 'create' },
+			{ title: 'Notifications', url: '/notifications', icon: 'bell' },
+			{ title: 'About', url: '/about', icon: 'about' }
 		]
 	};
 	type MenuButtonProps = HTMLAttributes<HTMLAnchorElement | HTMLButtonElement>;
@@ -147,6 +115,11 @@
 		setOpenMobile(false);
 	}
 
+	function handleFounderClick() {
+		goto('/founder');
+		setOpenMobile(false);
+	}
+
 	function handleUserManagementClick() {
 		goto('/admin/users');
 		setOpenMobile(false);
@@ -194,10 +167,12 @@
 <Sidebar.Root collapsible="offcanvas">
 	<Sidebar.Header>
 		<div class="flex items-center gap-2 px-2 py-2">
-			<img src="/rugplay.svg" class="h-5 w-5" alt="twoblade" />
+			<img src="/vellum.svg" class="h-5 w-5" alt="Vellum" />
 			<div class="flex items-center gap-2">
-				<span class="text-base font-semibold">Rugplay</span>
-				{#if $USER_DATA?.isAdmin}
+				<span class="text-base font-semibold">Vellum</span>
+				{#if $USER_DATA?.isFounder}
+					<span class="text-primary text-xs">| Founder</span>
+				{:else if $USER_DATA?.isAdmin}
 					<span class="text-muted-foreground text-xs">| Admin</span>
 				{/if}
 			</div>
@@ -217,7 +192,7 @@
 										onclick={() => handleNavClick(item.title)}
 										class={`${props.class} h-7! ${item.title === 'Notifications' && !$USER_DATA ? 'pointer-events-none opacity-50' : ''}`}
 									>
-										<HugeiconsIcon icon={item.icon} />
+										<VellumIcon name={item.icon} />
 										<span>{item.title}</span>
 										{#if item.title === 'Notifications' && $UNREAD_COUNT > 0 && $USER_DATA}
 											<Sidebar.MenuBadge class="bg-primary text-primary-foreground">
@@ -454,11 +429,11 @@
 							<!-- Profile & Settings Group -->
 							<DropdownMenu.Group>
 								<DropdownMenu.Item onclick={handleAccountClick}>
-									<HugeiconsIcon icon={UserIcon} />
+									<VellumIcon name="profile" size={16} />
 									Account
 								</DropdownMenu.Item>
 								<DropdownMenu.Item onclick={handleSettingsClick}>
-									<HugeiconsIcon icon={Settings01Icon} />
+									<VellumIcon name="settings" size={16} />
 									Settings
 								</DropdownMenu.Item>
 								<DropdownMenu.Item onclick={handlePrestigeClick}>
@@ -472,7 +447,7 @@
 							<!-- Features Group -->
 							<DropdownMenu.Group>
 								<DropdownMenu.Item onclick={handleAPIClick}>
-									<HugeiconsIcon icon={Key01Icon} />
+									<VellumIcon name="key" size={16} />
 									API
 								</DropdownMenu.Item>
 								<DropdownMenu.Item
@@ -481,19 +456,19 @@
 										setOpenMobile(false);
 									}}
 								>
-									<HugeiconsIcon icon={GiftIcon} />
+									<VellumIcon name="gift" size={16} />
 									Promo code
 								</DropdownMenu.Item>
 								<DropdownMenu.Item onclick={handleUserManualClick}>
-									<HugeiconsIcon icon={BookOpen01Icon} />
+									<VellumIcon name="book" size={16} />
 									User Manual
 								</DropdownMenu.Item>
 								<DropdownMenu.Item onclick={handleModeToggle}>
 									{#if mode.current === 'light'}
-										<HugeiconsIcon icon={Moon01Icon} />
+										<VellumIcon name="moon" size={16} />
 										Dark Mode
 									{:else}
-										<HugeiconsIcon icon={Sun01Icon} />
+										<VellumIcon name="sun" size={16} />
 										Light Mode
 									{/if}
 								</DropdownMenu.Item>
@@ -507,43 +482,56 @@
 										onclick={handleAdminClick}
 										class="text-primary hover:text-primary!"
 									>
-										<HugeiconsIcon icon={Shield01Icon} class="text-primary" />
+										<VellumIcon name="admin" size={16} class="text-primary" />
 										Admin Panel
 									</DropdownMenu.Item>
 									<DropdownMenu.Item
 										onclick={handleUserManagementClick}
 										class="text-primary hover:text-primary!"
 									>
-										<HugeiconsIcon icon={LegalHammerIcon} class="text-primary" />
+										<VellumIcon name="admin" size={16} class="text-primary" />
 										User Management
 									</DropdownMenu.Item>
 									<DropdownMenu.Item
 										onclick={handlePromoCodesClick}
 										class="text-primary hover:text-primary!"
 									>
-										<HugeiconsIcon icon={Ticket01Icon} class="text-primary" />
+										<VellumIcon name="gift" size={16} class="text-primary" />
 										Manage codes
 									</DropdownMenu.Item>
-									<DropdownMenu.Item
-										onclick={handleSeasonSettingsClick}
-										class="text-primary hover:text-primary!"
-									>
-										<HugeiconsIcon icon={ChampionIcon} class="text-primary" />
-										Season settings
-									</DropdownMenu.Item>
-								</DropdownMenu.Group>
-							{/if}
+							</DropdownMenu.Group>
+						{/if}
+
+						{#if $USER_DATA?.isFounder}
+							<DropdownMenu.Separator />
+							<DropdownMenu.Group>
+								<DropdownMenu.Item
+									onclick={handleFounderClick}
+									class="text-primary hover:text-primary!"
+								>
+									<VellumIcon name="founder" size={16} class="text-primary" />
+									Founder Command Center
+								</DropdownMenu.Item>
+								<DropdownMenu.Item
+									onclick={handleSeasonSettingsClick}
+									class="text-primary hover:text-primary!"
+								>
+									<VellumIcon name="season" size={16} class="text-primary" />
+									Season settings
+								</DropdownMenu.Item>
+							</DropdownMenu.Group>
+						{/if}
 
 							<DropdownMenu.Separator />
 
 							<!-- Legal Group -->
 							<DropdownMenu.Group>
 								<DropdownMenu.Item onclick={handleTermsClick}>
-									<HugeiconsIcon icon={JusticeScale01Icon} />
+									<VellumIcon name="book" size={16} />
 									Terms of Service
 								</DropdownMenu.Item>
 								<DropdownMenu.Item onclick={handlePrivacyClick}>
-									<HugeiconsIcon icon={ShieldUserIcon} />
+									<VellumIcon name="about" size={16} />
 									Privacy Policy
 								</DropdownMenu.Item>
 							</DropdownMenu.Group>
@@ -559,7 +547,7 @@
 									});
 								}}
 							>
-								<HugeiconsIcon icon={Logout01Icon} />
+								<VellumIcon name="logout" size={16} />
 								Log out
 							</DropdownMenu.Item>
 						</DropdownMenu.Content>
@@ -574,7 +562,7 @@
 					<Sidebar.MenuButton>
 						{#snippet child({ props }: { props: MenuButtonProps })}
 							<a href="/legal/terms" onclick={handleTermsClick} class={`${props.class}`}>
-								<HugeiconsIcon icon={JusticeScale01Icon} />
+								<VellumIcon name="book" size={16} />
 								<span>Terms of Service</span>
 							</a>
 						{/snippet}
@@ -584,7 +572,7 @@
 					<Sidebar.MenuButton>
 						{#snippet child({ props }: { props: MenuButtonProps })}
 							<a href="/legal/privacy" onclick={handlePrivacyClick} class={`${props.class}`}>
-								<HugeiconsIcon icon={ShieldUserIcon} />
+								<VellumIcon name="about" size={16} />
 								<span>Privacy Policy</span>
 							</a>
 						{/snippet}

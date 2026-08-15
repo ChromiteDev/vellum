@@ -127,14 +127,14 @@ export async function executeSellTrade(
                         await createNotification(
                             holder.userId.toString(),
                             'RUG_PULL',
-                            'Coin rugpulled!',
+                            'Coin dumped!',
                             `A coin you owned, ${coinData.name} (*${coinData.symbol}), crashed ${Math.abs(priceImpact).toFixed(1)}%!`,
                             `/coin/${coinData.symbol}`
                         );
                     }
                 }
             } catch (error) {
-                console.error('Error sending rug pull notifications:', error);
+                console.error('Error sending dump notifications:', error);
             }
         })();
     }

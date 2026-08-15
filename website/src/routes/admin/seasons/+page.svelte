@@ -61,7 +61,7 @@
 	}
 
 	$effect(() => {
-		if ($USER_DATA?.isAdmin && !loaded) {
+		if ($USER_DATA?.isFounder && !loaded) {
 			loaded = true;
 			load();
 		}
@@ -69,11 +69,11 @@
 </script>
 
 <svelte:head>
-	<title>Seasons - Admin | Rugplay</title>
+	<title>Seasons - Admin | Vellum</title>
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-{#if !$USER_DATA || !$USER_DATA.isAdmin}
+{#if !$USER_DATA || !$USER_DATA.isFounder}
 	<div class="flex h-screen items-center justify-center">
 		<div class="text-center">
 			<h1 class="text-2xl font-bold">Access Denied</h1>

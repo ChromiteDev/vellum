@@ -29,6 +29,27 @@ services:
     networks:
       - shared_backend
 
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+    depends_on:
+      - app
+      - websocket
+    networks:
+      - shared_backend
+
 networks:
   shared_backend:
     external: true
+
+volumes:
+  caddy_data:
+  caddy_config:

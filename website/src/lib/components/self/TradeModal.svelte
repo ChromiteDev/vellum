@@ -33,27 +33,20 @@
 	let numericAmount = $derived(parseFloat(amount) || 0);
 	let currentPrice = $derived(coin.currentPrice || 0);
 
-	let maxSellableAmount = $derived(
-		type === 'SELL' && coin
-			? Math.min(userHolding, Math.floor(Number(coin.poolCoinAmount) * 0.995))
-			: userHolding
-	);
+	let maxSellableAmount = $derived(userHolding);
 
 	let effectiveSellCoinAmount = $derived(() => {
-		if (type !== 'SELL' || !tokenMode || numericAmount <= 0) return numericAmount;
+		if (type !== 'SELL' || numericAmount <= 0) return numericAmount;
+		if (tokenMode) return numericAmount;
+
 		const poolCoin = Number(coin.poolCoinAmount);
 		const poolBase = Number(coin.poolBaseCurrencyAmount);
 		if (poolCoin <= 0 || poolBase <= 0) return 0;
 		const k = poolCoin * poolBase;
-
-		// The typed figure is what the seller wants to *receive*, so the pool has to
-		// give up more than that to cover the fee taken off the top.
 		const grossNeeded = numericAmount / (1 - SWAP_FEE_RATE);
-
 		const targetBase = poolBase - grossNeeded;
-		if (targetBase <= 0) return maxSellableAmount;
-		const requiredCoins = k / targetBase - poolCoin;
-		return Math.max(0, requiredCoins);
+		if (targetBase <= 0) return Number.POSITIVE_INFINITY;
+		return Math.max(0, k / targetBase - poolCoin);
 	});
 
 	// Inverse of the AMM buy math: how many dollars it costs to buy `numericAmount` tokens.
@@ -72,9 +65,9 @@
 	});
 
 	let estimatedResult = $derived(
-		tokenMode && type === 'SELL'
+		type === 'SELL'
 			? calculateEstimate(effectiveSellCoinAmount(), type, currentPrice)
-			: tokenMode && type === 'BUY'
+			: tokenMode
 				? calculateEstimate(effectiveBuyCost(), type, currentPrice)
 				: calculateEstimate(numericAmount, type, currentPrice)
 	);
@@ -82,10 +75,8 @@
 	let userBalance = $derived($PORTFOLIO_SUMMARY ? $PORTFOLIO_SUMMARY.baseCurrencyBalance : 0);
 	let hasEnoughFunds = $derived(() => {
 		if (type === 'BUY') return tokenMode ? effectiveBuyCost() <= userBalance : numericAmount <= userBalance;
-		if (tokenMode) {
-			return effectiveSellCoinAmount() <= userHolding;
-		}
-		return numericAmount <= userHolding;
+		const coins = effectiveSellCoinAmount();
+		return Number.isFinite(coins) && coins <= userHolding;
 	});
 	let canTrade = $derived(hasValidAmount && hasEnoughFunds() && !loading);
 
@@ -127,7 +118,7 @@
 
 		loading = true;
 		try {
-			const tradeAmount = (type === 'SELL' && tokenMode)
+			const tradeAmount = type === 'SELL'
 				? effectiveSellCoinAmount()
 				: (type === 'BUY' && tokenMode)
 					? effectiveBuyCost()
@@ -243,11 +234,7 @@
 				</div>
 				{#if type === 'SELL'}
 					<p class="text-muted-foreground text-xs">
-						Available: {userHolding.toFixed(6)}
-						{coin.symbol}
-						{#if maxSellableAmount < userHolding}
-							<br />Max sellable: {maxSellableAmount.toFixed(0)} {coin.symbol} (pool limit)
-						{/if}
+						Available: {userHolding.toFixed(6)} {coin.symbol}
 					</p>
 				{:else if $PORTFOLIO_SUMMARY}
 					<p class="text-muted-foreground text-xs">

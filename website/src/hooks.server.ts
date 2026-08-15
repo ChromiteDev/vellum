@@ -11,6 +11,7 @@ import { eq } from 'drizzle-orm';
 import { minesCleanupInactiveGames, minesAutoCashout } from '$lib/server/games/mines';
 import { towerCleanupInactiveGames } from '$lib/server/games/tower';
 import { checkRateLimit } from '$lib/server/ratelimit';
+import { sessionCache, CACHE_TTL } from "$lib/server/user-cache";
 
 const RATE_RULES: Array<{
     match: (path: string, method: string) => boolean;
@@ -119,13 +120,6 @@ async function initializeScheduler() {
 
 initializeScheduler();
 
-const sessionCache = new Map<string, {
-    userData: any;
-    timestamp: number;
-    ttl: number;
-}>();
-
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 const CACHE_CLEANUP_INTERVAL = 10 * 60 * 1000; // 10 minutes
 
 setInterval(() => {
@@ -165,18 +159,22 @@ export const handle: Handle = async ({ event, resolve }) => {
                     username: user.username,
                     email: user.email,
                     isAdmin: user.isAdmin,
+                    isFounder: user.isFounder,
                     image: user.image,
                     isBanned: user.isBanned,
                     banReason: user.banReason,
                     baseCurrencyBalance: user.baseCurrencyBalance,
                     bio: user.bio,
                     volumeMaster: user.volumeMaster,
-                    volumeMuted: user.volumeMuted,
-                    nameColor: user.nameColor,
-                    founderBadge: user.founderBadge,
-                    prestigeLevel: user.prestigeLevel,
-                    disableMentions: user.disableMentions
-                })
+                    volumeMuted: user.volumeMuted,					nameColor: user.nameColor,
+					bannerImage: user.bannerImage,
+					bannerColor: user.bannerColor,
+					profileSong: user.profileSong,
+					profileSongName: user.profileSongName,
+					founderBadge: user.founderBadge,
+					prestigeLevel: user.prestigeLevel,
+					disableMentions: user.disableMentions
+				})
                 .from(user)
                 .where(eq(user.id, Number(userId)))
                 .limit(1);
@@ -201,6 +199,7 @@ export const handle: Handle = async ({ event, resolve }) => {
                     username: userRecord.username,
                     email: userRecord.email,
                     isAdmin: userRecord.isAdmin || false,
+                    isFounder: userRecord.isFounder || false,
                     image: userRecord.image || '',
                     isBanned: userRecord.isBanned || false,
                     banReason: userRecord.banReason,
@@ -208,12 +207,15 @@ export const handle: Handle = async ({ event, resolve }) => {
                     baseCurrencyBalance: parseFloat(userRecord.baseCurrencyBalance || '0'),
                     bio: userRecord.bio || '',
                     volumeMaster: parseFloat(userRecord.volumeMaster || '0.7'),
-                    volumeMuted: userRecord.volumeMuted || false,
-                    nameColor: userRecord.nameColor ?? null,
-                    founderBadge: userRecord.founderBadge ?? false,
-                    prestigeLevel: userRecord.prestigeLevel ?? 0,
-                    disableMentions: userRecord.disableMentions ?? false
-                };
+                    volumeMuted: userRecord.volumeMuted || false,					nameColor: userRecord.nameColor ?? null,
+					bannerImage: userRecord.bannerImage ?? null,
+					bannerColor: userRecord.bannerColor ?? null,
+					profileSong: userRecord.profileSong ?? null,
+					profileSongName: userRecord.profileSongName ?? null,
+					founderBadge: userRecord.founderBadge ?? false,
+					prestigeLevel: userRecord.prestigeLevel ?? 0,
+					disableMentions: userRecord.disableMentions ?? false
+				};
 
                 const cacheTTL = userRecord.isAdmin ? CACHE_TTL * 2 : CACHE_TTL;
                 sessionCache.set(cacheKey, {
@@ -254,6 +256,3 @@ export const handle: Handle = async ({ event, resolve }) => {
     return svelteKitHandler({ event, resolve, auth });
 };
 
-export function clearUserCache(userId: string) {
-    sessionCache.delete(`user:${userId}`);
-}

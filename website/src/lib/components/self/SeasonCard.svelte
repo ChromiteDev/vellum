@@ -73,11 +73,11 @@
 				></div>
 				<div class="relative flex items-start justify-between gap-3">
 					<Card.Title class="flex min-w-0 flex-wrap items-center gap-2 text-lg sm:text-xl">
-						<span class="truncate">{season.name}</span>
+						<span class="min-w-0 truncate">{season.name}</span>
 						<Badge variant="success" class="shrink-0">Live</Badge>
 					</Card.Title>
-					<div class="flex shrink-0 flex-col items-end">
-						<span class="font-mono text-xl font-bold tabular-nums sm:text-2xl">{countdown}</span>
+					<div class="flex min-w-0 shrink-0 flex-col items-end">
+						<span class="font-mono text-xl font-bold whitespace-nowrap tabular-nums sm:text-2xl">{countdown}</span>
 						<span class="text-muted-foreground text-xs">remaining</span>
 					</div>
 				</div>

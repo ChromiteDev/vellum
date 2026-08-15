@@ -259,9 +259,9 @@
 </script>
 
 <SEO
-	title="Market - Rugplay"
-	description="Discover and trade virtual cryptocurrencies in our simulation game. Browse all available simulated coins, filter by price and performance, and more."
-	keywords="virtual cryptocurrency market, crypto trading game, coin discovery simulation, market analysis game, trading practice"
+	title="Market - Vellum"
+	description="Discover and trade every coin on Vellum. Browse the market, filter by price and performance, and track the movers."
+	keywords="cryptocurrency market, crypto trading, coin discovery, market analysis"
 />
 
 <div class="container mx-auto max-w-7xl p-6">

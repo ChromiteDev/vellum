@@ -379,9 +379,9 @@
 </script>
 
 <SEO
-	title="Shop - Rugplay"
-	description="Buy Gems to unlock name colors and cosmetics in Rugplay. Open crates for random rewards."
-	keywords="rugplay shop, gems, name colors, cosmetics, crates"
+	title="Shop - Vellum"
+	description="Buy Gems to unlock name colors and cosmetics in Vellum. Open crates for random rewards."
+	keywords="vellum shop, gems, name colors, cosmetics, crates"
 />
 
 <!-- Not enough gems dialog -->
@@ -603,7 +603,7 @@
 												<span class="font-mono">{reward.weight}%</span>
 											</div>
 										{/each}
-										<div class="text-muted-foreground border-t pt-1">Duplicate colors award Rugplay money instead.</div>
+										<div class="text-muted-foreground border-t pt-1">Duplicate colors award Vellum money instead.</div>
 									</div>
 								</Tooltip.Content>
 							</Tooltip.Root>

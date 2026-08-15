@@ -8,25 +8,47 @@ import * as schema from "./server/db/schema";
 import { generateUsername } from "./utils/random";
 import { uploadProfilePicture } from "./server/s3";
 import { apiKey } from "better-auth/plugins";
+import { eq } from "drizzle-orm";
 
 if (!privateEnv.GOOGLE_CLIENT_ID) throw new Error('GOOGLE_CLIENT_ID is not set');
 if (!privateEnv.GOOGLE_CLIENT_SECRET) throw new Error('GOOGLE_CLIENT_SECRET is not set');
 if (!publicEnv.PUBLIC_BETTER_AUTH_URL) throw new Error('PUBLIC_BETTER_AUTH_URL is not set');
 
+async function ensureUniqueUsername(candidate: string): Promise<string> {
+	const existing = await db
+		.select({ id: schema.user.id })
+		.from(schema.user)
+		.where(eq(schema.user.username, candidate))
+		.limit(1);
+	if (existing.length === 0) return candidate;
+
+	for (let attempt = 0; attempt < 8; attempt++) {
+		const next = generateUsername();
+		const taken = await db
+			.select({ id: schema.user.id })
+			.from(schema.user)
+			.where(eq(schema.user.username, next))
+			.limit(1);
+		if (taken.length === 0) return next;
+	}
+	return `${generateUsername()}${Math.floor(Math.random() * 900000) + 100000}`;
+}
+
 export const auth = betterAuth({
     baseURL: publicEnv.PUBLIC_BETTER_AUTH_URL,
     secret: privateEnv.PRIVATE_BETTER_AUTH_SECRET,
-    appName: "Rugplay",
+    appName: "Vellum",
 
     trustedOrigins: [
         publicEnv.PUBLIC_BETTER_AUTH_URL,
-        "http://rugplay.com",
+        "http://vellum.com",
+        "https://vellum.chromitedev.xyz",
         "http://localhost:5173",
     ],
 
     plugins: [
         apiKey({
-            defaultPrefix: 'rgpl_',
+            defaultPrefix: 'vell_',
             rateLimit: {
                 enabled: true,
                 timeWindow: 1000 * 60 * 60 * 24, // 1 day
@@ -43,6 +65,34 @@ export const auth = betterAuth({
         provider: "pg",
         schema: schema,
     }),
+    emailAndPassword: {
+        enabled: true,
+        autoSignIn: true,
+        minPasswordLength: 8,
+        maxPasswordLength: 128,
+        requireEmailVerification: false,
+    },
+    databaseHooks: {
+        user: {
+            create: {
+                before: async (user) => {
+                    const username = await ensureUniqueUsername(
+                        (user.username as string) || generateUsername()
+                    );
+                    const name = user.name && user.name.trim().length > 0
+                        ? user.name.trim()
+                        : username;
+                    return {
+                        data: {
+                            ...user,
+                            username,
+                            name,
+                        },
+                    };
+                },
+            },
+        },
+    },
     socialProviders: {
         google: {
             clientId: privateEnv.GOOGLE_CLIENT_ID,
@@ -81,8 +131,9 @@ export const auth = betterAuth({
     },
     user: {
         additionalFields: {
-            username: { type: "string", required: true, input: false },
-            isAdmin: { type: "boolean", required: true, input: false },
+            username: { type: "string", required: true, input: false, defaultValue: () => generateUsername() },
+            isAdmin: { type: "boolean", required: true, input: false, defaultValue: false },
+            isFounder: { type: "boolean", required: true, input: false, defaultValue: false },
             isBanned: { type: "boolean", required: false, input: false },
             banReason: { type: "string", required: false, input: false },
             baseCurrencyBalance: { type: "string", required: false, input: false },

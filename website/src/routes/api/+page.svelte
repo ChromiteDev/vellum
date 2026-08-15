@@ -187,7 +187,7 @@
 							Include your API key in the Authorization header for all requests:
 						</p>
 						<Codeblock
-							text={`Authorization: Bearer ${data.apiKey?.prefix ?? 'rgpl_'}your_api_key`}
+							text={`Authorization: Bearer ${data.apiKey?.prefix ?? 'vell_'}your_api_key`}
 							displayOnly={true}
 						/>
 					</Collapsible.Content>
@@ -212,7 +212,7 @@
 						</p>
 						<div class="space-y-2">
 							<h4 class="font-medium">Endpoint</h4>
-							<Codeblock text="GET https://rugplay.com/api/v1/top" displayOnly={true} />
+							<Codeblock text="GET https://vellum.com/api/v1/top" displayOnly={true} />
 						</div>
 						<div class="space-y-2">
 							<h4 class="font-medium">Example Response</h4>
@@ -255,7 +255,7 @@
 						</p>
 						<div class="space-y-2">
 							<h4 class="font-medium">Endpoint</h4>
-							<Codeblock text="GET https://rugplay.com/api/v1/market" displayOnly={true} />
+							<Codeblock text="GET https://vellum.com/api/v1/market" displayOnly={true} />
 						</div>
 						<div class="space-y-2">
 							<h4 class="font-medium">Query Parameters</h4>
@@ -285,7 +285,7 @@
       "volume24h": 13744958.18,
       "change24h": 7652377003.1039,
       "createdAt": "2025-06-24T16:18:51.278Z",
-      "creatorName": "FaceDev"
+      "creatorName": "Vellum"
     }
   ],
   "total": 150,
@@ -318,7 +318,7 @@
 						</p>
 						<div class="space-y-2">
 							<h4 class="font-medium">Endpoint</h4>
-							<Codeblock text="GET https://rugplay.com/api/v1/coin/&lbrace;symbol&rbrace;" displayOnly={true} />
+							<Codeblock text="GET https://vellum.com/api/v1/coin/&lbrace;symbol&rbrace;" displayOnly={true} />
 						</div>
 						<div class="space-y-2">
 							<h4 class="font-medium">Parameters</h4>
@@ -349,8 +349,8 @@
     "isListed": true,
     "createdAt": "2025-06-24T16:18:51.278Z",
     "creatorId": 1,
-    "creatorName": "FaceDev",
-    "creatorUsername": "facedev",
+    "creatorName": "Vellum",
+    "creatorUsername": "vellum",
     "creatorBio": "the one and only",
     "creatorImage": "avatars/1.jpg"
   },
@@ -396,7 +396,7 @@
 						</p>
 						<div class="space-y-2">
 							<h4 class="font-medium">Endpoint</h4>
-							<Codeblock text="GET https://rugplay.com/api/v1/holders/&lbrace;symbol&rbrace;" displayOnly={true} />
+							<Codeblock text="GET https://vellum.com/api/v1/holders/&lbrace;symbol&rbrace;" displayOnly={true} />
 						</div>
 						<div class="space-y-2">
 							<h4 class="font-medium">Parameters</h4>
@@ -423,8 +423,8 @@
     {
       "rank": 1,
       "userId": 1,
-      "username": "facedev",
-      "name": "FaceDev",
+      "username": "vellum",
+      "name": "Vellum",
       "image": "avatars/1.jpg",
       "quantity": 999883146.4679264,
       "percentage": 99.98831464679265,
@@ -457,7 +457,7 @@
 						</p>
 						<div class="space-y-2">
 							<h4 class="font-medium">Endpoint</h4>
-							<Codeblock text="GET https://rugplay.com/api/v1/hopium" displayOnly={true} />
+							<Codeblock text="GET https://vellum.com/api/v1/hopium" displayOnly={true} />
 						</div>
 						<div class="space-y-2">
 							<h4 class="font-medium">Query Parameters</h4>
@@ -476,7 +476,7 @@
   "questions": [
     {
       "id": 101,
-      "question": "will elon musk tweet about rugplay?",
+      "question": "will elon musk tweet about vellum?",
       "status": "ACTIVE",
       "resolutionDate": "2025-07-25T10:39:19.612Z",
       "totalAmount": 4007.76,
@@ -527,7 +527,7 @@
 						</p>
 						<div class="space-y-2">
 							<h4 class="font-medium">Endpoint</h4>
-							<Codeblock text="GET https://rugplay.com/api/v1/hopium/&lbrace;question_id&rbrace;" displayOnly={true} />
+							<Codeblock text="GET https://vellum.com/api/v1/hopium/&lbrace;question_id&rbrace;" displayOnly={true} />
 						</div>
 						<div class="space-y-2">
 							<h4 class="font-medium">Parameters</h4>
@@ -543,7 +543,7 @@
 								text={`{
   "question": {
     "id": 101,
-    "question": "will elon musk tweet about rugplay?",
+    "question": "will elon musk tweet about vellum?",
     "status": "ACTIVE",
     "resolutionDate": "2025-07-25T10:39:19.612Z",
     "totalAmount": 4007.76,

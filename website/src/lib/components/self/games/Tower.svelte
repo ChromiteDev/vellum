@@ -232,9 +232,9 @@
 									aria-label="Tile {t + 1} floor {f + 1}"
 								>
 									{#if ts === 'safe'}
-										<img src="/facedev/avif/twoblade.avif" alt="Safe" class="h-5 w-5 object-contain" />
+										<img src="/games/gem.svg" alt="Safe" class="h-5 w-5 object-contain" />
 									{:else if ts === 'bomb'}
-										<img src="/facedev/avif/bussin.avif" alt="Bomb" class="h-5 w-5 object-contain" />
+										<img src="/games/mine.svg" alt="Bomb" class="h-5 w-5 object-contain" />
 									{/if}
 								</Button>
 							{/each}

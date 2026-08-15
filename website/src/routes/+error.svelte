@@ -10,7 +10,7 @@
 	function getDefaultMessage(status: number) {
 		switch (status) {
 			case 404:
-				return "This page doesn't exist. Just like the original Vyntr! Or the context mismatch popups in Bliptext";
+				return "This page doesn't exist.";
 			case 403:
 				return "You don't have permission to access this page. Your credentials are likely ####.";
 			case 429:
@@ -36,7 +36,7 @@
 </script>
 
 <svelte:head>
-	<title>{status} | Rugplay</title>
+	<title>{status} | Vellum</title>
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
@@ -49,8 +49,7 @@
 			{message}
 		</p>
 		<div class="flex flex-col">
-			<Button variant="link" href="https://discord.gg/cKWNV2uZUP" target="_blank">@Discord</Button>
-			<Button variant="link" href="https://x.com/facedevstuff" target="_blank">@X</Button>
+			<Button variant="link" href="/">Back to Vellum</Button>
 		</div>
 	</div>
 

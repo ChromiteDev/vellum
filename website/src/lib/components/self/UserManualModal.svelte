@@ -31,9 +31,9 @@
 	const tips: Tip[] = [
 		{
 			id: 1,
-			title: 'Welcome to Rugplay!',
+			title: 'Welcome to Vellum!',
 			description:
-				'Rugplay is a cryptocurrency trading simulator where you can practice trading without real financial risk. Start with virtual money, create coins, make predictions on markets, and most importantly, rugpull!',
+				'Vellum is a live cryptocurrency market where you trade, launch coins, and make market calls. Start with a Vellum balance, build your portfolio, and climb the leaderboard.',
 			icon: BookOpen01Icon,
 			image: '/tips/cover.avif'
 		},
@@ -57,7 +57,7 @@
 			id: 4,
 			title: 'AMM - Automated Market Maker',
 			description:
-				'Rugplay uses an AMM system where prices are calculated automatically based on supply and demand. The more you buy, the higher the price goes. The more you sell, the lower it drops. Large trades create "slippage" - the price change during your trade.',
+				'Vellum uses an AMM system where prices are calculated automatically based on supply and demand. The more you buy, the higher the price goes. The more you sell, the lower it drops. Large trades create "slippage" - the price change during your trade.',
 			icon: BarChartIcon,
 			image: '/tips/amm.avif'
 		},
@@ -79,9 +79,9 @@
 		},
 		{
 			id: 7,
-			title: 'What is a "Rug Pull"?',
+			title: 'What is a Token Dump?',
 			description:
-				'A "rug pull" happens when large holders (including coin creators) sell their holdings all at once, crashing the price.',
+				'A "token dump" happens when large holders (including coin creators) sell their holdings all at once, crashing the price.',
 			icon: Target01Icon,
             image: '/tips/rugpull.avif'
 		},
@@ -112,8 +112,7 @@
 		{
 			id: 11,
 			title: 'Arcade Games',
-			description:
-				'Visit the Arcade section for high-risk, high-reward games. Remember: these are pure chance games. Only play with what you can afford to lose, even in this simulation!',
+			description:					'Visit the Arcade section for high-risk, high-reward games. These are pure chance games, so size your bets carefully.',
 			icon: DiceFaces01Icon,
             image: '/tips/arcade.avif'
 		},
@@ -145,7 +144,7 @@
 			id: 15,
 			title: 'Daily Rewards',
 			description:
-				'Log in daily to claim free money! Your login streak increases your daily bonus. Consistent players get more virtual cash to invest.',
+				'Log in daily to claim your bonus. Your login streak increases your daily reward, giving consistent players more to invest.',
 			icon: Coins01Icon,
             image: '/tips/daily.avif'
 		},
@@ -153,7 +152,7 @@
 			id: 16,
 			title: 'Concluding',
 			description:
-				"Start small, diversify your holdings, and don't invest everything in one coin. Watch for coins with diversified holders to avoid absolute rug pulls. People get smart!",
+				"Start small, diversify your holdings, and don't invest everything in one coin. Watch for coins with diversified holders to avoid absolute dumps. People get smart!",
 			icon: TradeUpIcon,
             image: '/tips/ender.avif'
 		}
