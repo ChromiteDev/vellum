@@ -12,9 +12,49 @@ import { eq } from "drizzle-orm";
 import { redis } from "./server/redis";
 import { sendMail, isMailConfigured } from "./server/mail";
 
-if (!privateEnv.GOOGLE_CLIENT_ID) throw new Error('GOOGLE_CLIENT_ID is not set');
-if (!privateEnv.GOOGLE_CLIENT_SECRET) throw new Error('GOOGLE_CLIENT_SECRET is not set');
 if (!publicEnv.PUBLIC_BETTER_AUTH_URL) throw new Error('PUBLIC_BETTER_AUTH_URL is not set');
+
+const googleClientId = privateEnv.GOOGLE_CLIENT_ID;
+const googleClientSecret = privateEnv.GOOGLE_CLIENT_SECRET;
+
+const socialProviders = googleClientId && googleClientSecret
+	? {
+			google: {
+				clientId: googleClientId,
+				clientSecret: googleClientSecret,
+				mapProfileToUser: async (profile: Record<string, any>) => {
+					const newUsername = generateUsername();
+					let s3ImageKey: string | null = null;
+
+					if (profile.picture) {
+						try {
+							const response = await fetch(profile.picture);
+							if (!response.ok) {
+								console.error(`Failed to fetch profile picture: ${response.statusText}`);
+							} else {
+								const blob = await response.blob();
+								const arrayBuffer = await blob.arrayBuffer();
+								s3ImageKey = await uploadProfilePicture(
+									profile.sub,
+									new Uint8Array(arrayBuffer),
+									blob.type || 'image/jpeg'
+								);
+							}
+						} catch (error) {
+							console.error('Failed to upload profile picture during social login:', error);
+						}
+					}
+
+					return {
+						name: profile.name,
+						email: profile.email,
+						image: s3ImageKey,
+						username: newUsername,
+					};
+				},
+			},
+		}
+	: {};
 
 async function ensureUniqueUsername(candidate: string): Promise<string> {
 	const existing = await db
@@ -171,42 +211,7 @@ export const auth = betterAuth({
             },
         },
     },
-    socialProviders: {
-        google: {
-            clientId: privateEnv.GOOGLE_CLIENT_ID,
-            clientSecret: privateEnv.GOOGLE_CLIENT_SECRET,
-            mapProfileToUser: async (profile) => {
-                const newUsername = generateUsername();
-                let s3ImageKey: string | null = null;
-
-                if (profile.picture) {
-                    try {
-                        const response = await fetch(profile.picture);
-                        if (!response.ok) {
-                            console.error(`Failed to fetch profile picture: ${response.statusText}`);
-                        } else {
-                            const blob = await response.blob();
-                            const arrayBuffer = await blob.arrayBuffer();
-                            s3ImageKey = await uploadProfilePicture(
-                                profile.sub,
-                                new Uint8Array(arrayBuffer),
-                                blob.type || 'image/jpeg'
-                            );
-                        }
-                    } catch (error) {
-                        console.error('Failed to upload profile picture during social login:', error);
-                    }
-                }
-
-                return {
-                    name: profile.name,
-                    email: profile.email,
-                    image: s3ImageKey,
-                    username: newUsername,
-                };
-            },
-        }
-    },
+    socialProviders,
     user: {
         additionalFields: {
             username: { type: "string", required: true, input: false, defaultValue: () => generateUsername() },

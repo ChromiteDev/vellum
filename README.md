@@ -190,6 +190,8 @@ Before you begin, make sure you have the following installed:
 
 Run Vellum on your own computer (the same way you run a Minecraft server) and expose it for free with Cloudflare. Cloudflare provides the domain, HTTPS, and the tunnel; your machine just needs to stay on.
 
+> **One-command Windows setup:** if you are on Windows, just open Git Bash in this folder and run `./setup-windows.sh`. It installs Docker Desktop and `cloudflared`, creates the tunnel, wires up `vellum.chromitedev.xyz`, generates a secure auth secret, and starts everything — the steps below happen automatically.
+
 1. **Add your domain to Cloudflare (free).**
 
    Sign up at cloudflare.com (free plan), add `chromitedev.xyz`, and Cloudflare imports your existing records. It will give you two nameservers — change them on Namecheap to those. Nothing else breaks; your GitHub Pages and `mc` records keep working.
@@ -231,12 +233,10 @@ Run Vellum on your own computer (the same way you run a Minecraft server) and ex
 6. **First deploy only — create the database schema and your founder account:**
 
    ```bash
-   docker compose -f docker-compose.free.yml exec app node -e "require('./build/index.js')" 2>/dev/null
-   # push the schema:
-   cd website && npx drizzle-kit push
+   docker compose -f docker-compose.free.yml exec app sh -c 'npm run db:push'
    ```
 
-   Then sign in once with Google and promote yourself in Postgres:
+   Then sign in once (email/password works out of the box) and promote yourself in Postgres:
 
    ```sql
    docker compose -f docker-compose.free.yml exec postgres psql -U postgres -d vellum \

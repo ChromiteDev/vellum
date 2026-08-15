@@ -11,12 +11,15 @@
 	import { Label } from '$lib/components/ui/label';
 	import { client, signIn, signUp } from '$lib/auth-client';
 	import { page } from '$app/state';
+	import { env as publicEnv } from '$env/dynamic/public';
 	import { invalidateAll } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
 
 	let { open = $bindable(false) } = $props<{
 		open?: boolean;
 	}>();
+
+	const googleEnabled = publicEnv.PUBLIC_GOOGLE_ENABLED === 'true';
 
 	let mode = $state<'signin' | 'signup' | 'forgot'>('signin');
 	let name = $state('');
@@ -272,7 +275,7 @@
 				{/if}
 			</form>
 
-			{#if mode !== 'forgot'}
+			{#if mode !== 'forgot' && googleEnabled}
 				<div class="flex items-center gap-3">
 					<span class="bg-border h-px flex-1"></span>
 					<span class="text-muted-foreground text-xs">or continue with</span>
