@@ -1,6 +1,6 @@
 import { S3Client, GetObjectCommand, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { PRIVATE_B2_KEY_ID, PRIVATE_B2_APP_KEY } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import { PUBLIC_B2_BUCKET, PUBLIC_B2_ENDPOINT, PUBLIC_B2_REGION } from '$env/static/public';
 import { processImage } from './image.js';
 
@@ -8,8 +8,8 @@ const s3Client = new S3Client({
     endpoint: PUBLIC_B2_ENDPOINT,
     region: PUBLIC_B2_REGION,
     credentials: {
-        accessKeyId: PRIVATE_B2_KEY_ID,
-        secretAccessKey: PRIVATE_B2_APP_KEY
+        accessKeyId: env.PRIVATE_B2_KEY_ID,
+        secretAccessKey: env.PRIVATE_B2_APP_KEY
     },
     forcePathStyle: true,
     requestChecksumCalculation: 'WHEN_REQUIRED',

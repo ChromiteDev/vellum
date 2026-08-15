@@ -1,3 +1,4 @@
 .github
 review.js
 .freebuff/
+cloudflared/*.json

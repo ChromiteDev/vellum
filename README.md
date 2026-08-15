@@ -186,6 +186,65 @@ Before you begin, make sure you have the following installed:
 
 2. The app will be available at http://localhost:3002
 
+#### Free hosting (no VPS) — Cloudflare Tunnel
+
+Run Vellum on your own computer (the same way you run a Minecraft server) and expose it for free with Cloudflare. Cloudflare provides the domain, HTTPS, and the tunnel; your machine just needs to stay on.
+
+1. **Add your domain to Cloudflare (free).**
+
+   Sign up at cloudflare.com (free plan), add `chromitedev.xyz`, and Cloudflare imports your existing records. It will give you two nameservers — change them on Namecheap to those. Nothing else breaks; your GitHub Pages and `mc` records keep working.
+
+2. **Install `cloudflared` and create the tunnel (once):**
+
+   ```bash
+   cloudflared tunnel login
+   cloudflared tunnel create vellum
+   cloudflared tunnel route dns vellum vellum.chromitedev.xyz
+   ```
+
+   `tunnel create` prints a UUID and saves a credentials file at `~/.cloudflared/<UUID>.json`.
+
+3. **Copy the credentials into the repo and point the config at them:**
+
+   ```bash
+   cp ~/.cloudflared/<UUID>.json cloudflared/
+   # then replace YOUR_TUNNEL_UUID in cloudflared/config.yml with the UUID
+   ```
+
+4. **Set the production URLs** in `website/.env`:
+
+   ```ini
+   PUBLIC_BETTER_AUTH_URL=https://vellum.chromitedev.xyz
+   PUBLIC_WEBSOCKET_URL=wss://vellum.chromitedev.xyz/ws
+   ```
+
+   Also add `https://vellum.chromitedev.xyz/api/auth/callback/google` to your Google OAuth redirect URIs.
+
+5. **Start everything:**
+
+   ```bash
+   ./run-free.sh
+   ```
+
+   This builds and starts Postgres, Redis, the app, the websocket, and the tunnel in one go.
+
+6. **First deploy only — create the database schema and your founder account:**
+
+   ```bash
+   docker compose -f docker-compose.free.yml exec app node -e "require('./build/index.js')" 2>/dev/null
+   # push the schema:
+   cd website && npx drizzle-kit push
+   ```
+
+   Then sign in once with Google and promote yourself in Postgres:
+
+   ```sql
+   docker compose -f docker-compose.free.yml exec postgres psql -U postgres -d vellum \
+     -c "UPDATE \"user\" SET is_admin = true, is_founder = true WHERE email = 'your-email@example.com';"
+   ```
+
+No open ports, no firewall rules, no VPS bill. Cloudflare issues the certificate and renews it automatically.
+
 #### Pointing your domain (vellum.chromitedev.xyz)
 
 Caddy is included in `docker-compose.yml` and serves the site with automatic HTTPS. To go live:

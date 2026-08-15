@@ -1,18 +1,23 @@
 import OpenAI from 'openai';
 import { z } from 'zod';
-import { OPENROUTER_API_KEY } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import { db } from './db';
 import { coin, user, transaction, priceHistory } from './db/schema';
 import { eq, desc, sql, gte } from 'drizzle-orm';
 
-if (!OPENROUTER_API_KEY) {
-    throw new Error('OPENROUTER_API_KEY is not set – AI features are disabled.');
-}
+let _openai: OpenAI | null = null;
 
-const openai = new OpenAI({
-    baseURL: 'https://openrouter.ai/api/v1',
-    apiKey: OPENROUTER_API_KEY,
-});
+function getOpenAI(): OpenAI | null {
+    const key = env.OPENROUTER_API_KEY;
+    if (!key) return null;
+    if (!_openai) {
+        _openai = new OpenAI({
+            baseURL: 'https://openrouter.ai/api/v1',
+            apiKey: key,
+        });
+    }
+    return _openai;
+}
 
 const MODELS = {
     STANDARD: 'google/gemini-3.1-flash-lite',
@@ -208,7 +213,8 @@ function extractCoinSymbols(text: string): string[] {
 }
 
 export async function validateQuestion(question: string, description?: string): Promise<QuestionValidationResult> {
-    if (!OPENROUTER_API_KEY) {
+    const openai = getOpenAI();
+    if (!openai) {
         return {
             isValid: false,
             requiresWebSearch: false,
@@ -324,7 +330,8 @@ export async function resolveQuestion(
     requiresWebSearch: boolean,
     customVellumData?: string
 ): Promise<QuestionResolutionResult> {
-    if (!OPENROUTER_API_KEY) {
+    const openai = getOpenAI();
+    if (!openai) {
         return {
             resolution: false,
             confidence: 0,
